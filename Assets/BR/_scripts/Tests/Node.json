@@ -1,0 +1,14 @@
+﻿{
+	"node": 
+	{
+
+		"createdAt":"2016-03-11T05:00:00.000Z",
+		"description":"Check us out playing our favorite song in VR",
+		"duration":98,
+		"id":"0",
+		"name":"#Band6DOF",
+		"streamUrl":"demo_5.mp4",
+		"thumbUrl":"https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Save+Ferris/studioheart.png",
+		"userId":"0"
+	}
+}

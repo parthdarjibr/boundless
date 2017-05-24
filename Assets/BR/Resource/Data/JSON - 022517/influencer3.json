@@ -1,0 +1,54 @@
+{
+  "videos": {
+    "video": [
+      {
+        "currUserLikeStatus": true,
+        "influencerBio": "I play guitar and make stuff. Check out my latest song: I Swear I'm Over You",
+        "influencerID": 3,
+        "influencerName": "DaveDays",
+        "influencerPicURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/influencer_faces/Dave+Face.png",
+        "timeUploaded": "2016-03-11T05:00:00.000Z",
+        "videoDescription": "This is a video description",
+        "videoDuration": 98,
+        "videoID": 0,
+        "videoLikes": 3000,
+        "videoName": "#4Chords #2016PopJam",
+        "videoThumbURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Dave+Days/StudioTour.png",
+        "videoType": 0,
+        "videoURL": "dave_3.mp4"
+      },
+      {
+        "currUserLikeStatus": true,
+        "influencerBio": "I play guitar and make stuff. Check out my latest song: I Swear I'm Over You",
+        "influencerID": 3,
+        "influencerName": "DaveDays",
+        "influencerPicURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/influencer_faces/Dave+Face.png",
+        "timeUploaded": "2016-03-11T05:00:00.000Z",
+        "videoDescription": "This is a video description",
+        "videoDuration": 98,
+        "videoID": 1,
+        "videoLikes": 3000,
+        "videoName": "#SwearImOverYou #RoadsideDuet #Malibu",
+        "videoThumbURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Dave+Days/OverYou.png",
+        "videoType": 0,
+        "videoURL": "dave_1.mp4"
+      },
+      {
+        "currUserLikeStatus": true,
+        "influencerBio": "I play guitar and make stuff. Check out my latest song: I Swear I'm Over You",
+        "influencerID": 3,
+        "influencerName": "DaveDays",
+        "influencerPicURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/influencer_faces/Dave+Face.png",
+        "timeUploaded": "2016-03-11T05:00:00.000Z",
+        "videoDescription": "This is a video description",
+        "videoDuration": 98,
+        "videoID": 2,
+        "videoLikes": 3000,
+        "videoName": "#FirstFalsetto #StudioSesh",
+        "videoThumbURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Dave+Days/Studio.png",
+        "videoType": 0,
+        "videoURL": "dave_2.mp4"
+      }
+    ]
+  }
+}

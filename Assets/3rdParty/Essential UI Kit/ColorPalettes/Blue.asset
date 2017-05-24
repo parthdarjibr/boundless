@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d441845746d543919b57cc08c4da251, type: 3}
+  m_Name: Blue
+  m_EditorClassIdentifier: 
+  colors:
+  - m_ColorName: 53616e204d6172696e6f
+    m_color: {}
+  - m_ColorName: 526f79616c20426c7565
+    m_color: {}
+  - m_ColorName: 5370726179
+    m_color: {}
+  - m_ColorName: 506963746f6e20426c7565
+    m_color: {}
+  - m_ColorName: 4d616c696275
+    m_color: {}
+  - m_ColorName: 5069636b6c656420426c7565776f6f64
+    m_color: {}
+  - m_ColorName: 4368616d62726179
+    m_color: {}
+  - m_ColorName: 53756d6d657220536b79
+    m_color: {}

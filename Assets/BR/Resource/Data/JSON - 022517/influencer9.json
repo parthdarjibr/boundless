@@ -1,0 +1,22 @@
+{
+  "videos": {
+    "video": [
+      {
+        "currUserLikeStatus": true,
+        "influencerBio": "Four weirdos making noise.",
+        "influencerID": 9,
+        "influencerName": "Draemings",
+        "influencerPicURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Draemings/DraemingFace.png",
+        "timeUploaded": "2016-03-11T05:00:00.000Z",
+        "videoDescription": "This is a video description",
+        "videoDuration": 98,
+        "videoID": 1,
+        "videoLikes": 3000,
+        "videoName": "#GuitarTracking #LoseTheCountDown",
+        "videoThumbURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Draemings/guitar.png",
+        "videoType": 0,
+        "videoURL": "draem_1.mp4"
+      }
+    ]
+  }
+}

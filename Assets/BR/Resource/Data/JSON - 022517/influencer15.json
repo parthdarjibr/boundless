@@ -1,0 +1,54 @@
+{
+  "videos": {
+    "video": [
+        {
+            "currUserLikeStatus": false,
+            "influencerBio": "Nick Murphy, the New York-based Australian producer and musician formerly known as Chet Faker, recently announced that he will now write, produce, record and perform under his real name.",
+            "influencerID": 15,
+            "influencerName": "NickMurphy",
+            "influencerPicURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Nick+Murphy/NickFace.png",
+            "timeUploaded": "2016-03-11T05:00:00.000Z",
+            "videoDescription": "description",
+            "videoDuration": 98,
+            "videoID": 0,
+            "videoLikes": 2000,
+            "videoName": "#HauntedHouse",
+            "videoThumbURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Nick+Murphy/Edgy.png",
+            "videoType": 0,
+            "videoURL": "demo_1.mp4"
+       },
+       {
+            "currUserLikeStatus": false,
+            "influencerBio": "Nick Murphy, the New York-based Australian producer and musician formerly known as Chet Faker, recently announced that he will now write, produce, record and perform under his real name.",
+            "influencerID": 15,
+            "influencerName": "NickMurphy",
+            "influencerPicURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Nick+Murphy/NickFace.png",
+            "timeUploaded": "2016-03-11T05:00:00.000Z",
+            "videoDescription": "description",
+            "videoDuration": 98,
+            "videoID": 2,
+            "videoLikes": 2000,
+            "videoName": "#SpeedCover",
+            "videoThumbURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Nick+Murphy/Studio.png",
+            "videoType": 0,
+            "videoURL": "demo_1.mp4"
+       },
+       {
+            "currUserLikeStatus": false,
+            "influencerBio": "Nick Murphy, the New York-based Australian producer and musician formerly known as Chet Faker, recently announced that he will now write, produce, record and perform under his real name.",
+            "influencerID": 15,
+            "influencerName": "NickMurphy",
+            "influencerPicURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Nick+Murphy/NickFace.png",
+            "timeUploaded": "2016-03-11T05:00:00.000Z",
+            "videoDescription": "description",
+            "videoDuration": 98,
+            "videoID": 2,
+            "videoLikes": 2000,
+            "videoName": "#GoodTalks #AMA",
+            "videoThumbURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Nick+Murphy/Sitting.png",
+            "videoType": 0,
+            "videoURL": "demo_1.mp4"
+       }
+    ]
+  }
+}

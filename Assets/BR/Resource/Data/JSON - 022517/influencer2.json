@@ -1,0 +1,38 @@
+{
+  "videos": {
+    "video": [
+      {
+        "currUserLikeStatus": true,
+        "influencerBio": "I love taking pictures, walking on runways, traveling the world, and wearing costumes.",
+        "influencerID": 2,
+        "influencerName": "NataliaLaLonde",
+        "influencerPicURL": "https://s3.amazonaws.com/public.boundlessreality.com/influencer_faces/Natalia+Face.png",
+        "timeUploaded": "2016-03-11T05:00:00.000Z",
+        "videoDescription": "This is a video description",
+        "videoDuration": 98,
+        "videoID": 0,
+        "videoLikes": 3000,
+        "videoName": "#TrueLove #SurveySays",
+        "videoThumbURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Natalia/TruestLove.png",
+        "videoType": 0,
+        "videoURL": "nat_1.mp4"
+      },
+      {
+        "currUserLikeStatus": false,
+        "influencerBio": "I love taking pictures, walking on runways, traveling the world, and wearing costumes.",
+        "influencerID": 2,
+        "influencerName": "NataliaLaLonde",
+        "influencerPicURL": "https://s3.amazonaws.com/public.boundlessreality.com/influencer_faces/Natalia+Face.png",
+        "timeUploaded": "2016-03-11T05:00:00.000Z",
+        "videoDescription": "Check us out playing our favorite song in VR",
+        "videoDuration": 98,
+        "videoID": 1,
+        "videoLikes": 2000,
+        "videoName": "#BondStreet #PerfectNYC",
+        "videoThumbURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Natalia/bondstreet.png",
+        "videoType": 0,
+        "videoURL": "nat_3.mp4"
+      }
+    ]
+  }
+}

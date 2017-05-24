@@ -1,0 +1,54 @@
+{
+  "videos": {
+    "video": [
+      {
+        "currUserLikeStatus": true,
+        "influencerBio": "Get our debut album VHS.",
+        "influencerID": 12,
+        "influencerName": "XAmbassadors",
+        "influencerPicURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/X+Ambassadors/XAmbFace.png",
+        "timeUploaded": "2016-03-11T05:00:00.000Z",
+        "videoDescription": "This is a video description",
+        "videoDuration": 98,
+        "videoID": 0,
+        "videoLikes": 3000,
+        "videoName": "#TennisShowdown",
+        "videoThumbURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/X+Ambassadors/Tennis.png",
+        "videoType": 0,
+        "videoURL": "demo_1.mp4"
+      },
+      {
+        "currUserLikeStatus": true,
+        "influencerBio": "Get our debut album VHS.",
+        "influencerID": 12,
+        "influencerName": "XAmbassadors",
+        "influencerPicURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/X+Ambassadors/XAmbFace.png",
+        "timeUploaded": "2016-03-11T05:00:00.000Z",
+        "videoDescription": "This is a video description",
+        "videoDuration": 98,
+        "videoID": 1,
+        "videoLikes": 3000,
+        "videoName": "#OldFashion #BBQHype",
+        "videoThumbURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/X+Ambassadors/BBq.png",
+        "videoType": 0,
+        "videoURL": "demo_1.mp4"
+      },
+      {
+        "currUserLikeStatus": true,
+        "influencerBio": "Get our debut album VHS.",
+        "influencerID": 12,
+        "influencerName": "XAmbassadors",
+        "influencerPicURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/X+Ambassadors/XAmbFace.png",
+        "timeUploaded": "2016-03-11T05:00:00.000Z",
+        "videoDescription": "This is a video description",
+        "videoDuration": 98,
+        "videoID": 2,
+        "videoLikes": 3000,
+        "videoName": "#BathromAcoustics",
+        "videoThumbURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/X+Ambassadors/Bathroom.png",
+        "videoType": 0,
+        "videoURL": "demo_1.mp4"
+      }
+    ]
+  }
+}

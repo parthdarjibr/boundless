@@ -1,0 +1,54 @@
+{
+  "videos": {
+    "video": [
+      {
+        "currUserLikeStatus": true,
+        "influencerBio": "New York City's best comedy scene.",
+        "influencerID": 14,
+        "influencerName": "ComedyCellar",
+        "influencerPicURL": "https://s3.amazonaws.com/public.boundlessreality.com/influencer_faces/Comedy+Cellar+Face.png",
+        "timeUploaded": "2016-03-11T05:00:00.000Z",
+        "videoDescription": "This is a video description",
+        "videoDuration": 98,
+        "videoID": 0,
+        "videoLikes": 3000,
+        "videoName": "#ChrisRock #DaveChapelle",
+        "videoThumbURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Comedy+Cellar/Dave+Chapelle.png",
+        "videoType": 0,
+        "videoURL": "demo_1.mp4"
+      },
+      {
+        "currUserLikeStatus": true,
+        "influencerBio": "New York City's best comedy scene.",
+        "influencerID": 14,
+        "influencerName": "ComedyCellar",
+        "influencerPicURL": "https://s3.amazonaws.com/public.boundlessreality.com/influencer_faces/Comedy+Cellar+Face.png",
+        "timeUploaded": "2016-03-11T05:00:00.000Z",
+        "videoDescription": "This is a video description",
+        "videoDuration": 98,
+        "videoID": 1,
+        "videoLikes": 3000,
+        "videoName": "#CandyceMusinski",
+        "videoThumbURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Comedy+Cellar/Candyc.png",
+        "videoType": 0,
+        "videoURL": "demo_1.mp4"
+      },
+      {
+        "currUserLikeStatus": true,
+        "influencerBio": "New York City's best comedy scene.",
+        "influencerID": 14,
+        "influencerName": "ComedyCellar",
+        "influencerPicURL": "https://s3.amazonaws.com/public.boundlessreality.com/influencer_faces/Comedy+Cellar+Face.png",
+        "timeUploaded": "2016-03-11T05:00:00.000Z",
+        "videoDescription": "This is a video description",
+        "videoDuration": 98,
+        "videoID": 2,
+        "videoLikes": 3000,
+        "videoName": "#HaveyLouie",
+        "videoThumbURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Comedy+Cellar/Havey+Louie.png",
+        "videoType": 0,
+        "videoURL": "demo_1.mp4"
+      }
+    ]
+  }
+}

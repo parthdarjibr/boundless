@@ -1,0 +1,54 @@
+{
+  "videos": {
+    "video": [
+      {
+        "currUserLikeStatus": false,
+        "influencerBio": "Change-Maker, Teacher, Writer, and Speaker. Devoted to Self Love, Spirituality, and Personal Empowerment. Here to Remind You to BE YOU.",
+        "influencerID": 8,
+        "influencerName": "JennaGalbut",
+        "influencerPicURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Jenna+Galbut/Jenna+Face.png",
+        "timeUploaded": "2016-03-11T05:00:00.000Z",
+        "videoDescription": "Check us out playing our favorite song in VR",
+        "videoDuration": 98,
+        "videoID": 1,
+        "videoLikes": 2000,
+        "videoName": "#BeachDream #Gratitude",
+        "videoThumbURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Jenna+Galbut/BeachPicnic.png",
+        "videoType": 0,
+        "videoURL": "jenna_1.mp4"
+      },
+      {
+        "currUserLikeStatus": false,
+        "influencerBio": "Change-Maker, Teacher, Writer, and Speaker. Devoted to Self Love, Spirituality, and Personal Empowerment. Here to Remind You to BE YOU.",
+        "influencerID": 8,
+        "influencerName": "JennaGalbut",
+        "influencerPicURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Jenna+Galbut/Jenna+Face.png",
+        "timeUploaded": "2016-03-11T05:00:00.000Z",
+        "videoDescription": "Check us out playing our favorite song in VR",
+        "videoDuration": 98,
+        "videoID": 0,
+        "videoLikes": 2000,
+        "videoName": "#BoneStew #MostlyVegetarian",
+        "videoThumbURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Jenna+Galbut/BoneSoup.png",
+        "videoType": 0,
+        "videoURL": "jenna_2.mp4"
+      },
+      {
+        "currUserLikeStatus": false,
+        "influencerBio": "Change-Maker, Teacher, Writer, and Speaker. Devoted to Self Love, Spirituality, and Personal Empowerment. Here to Remind You to BE YOU.",
+        "influencerID": 8,
+        "influencerName": "JennaGalbut",
+        "influencerPicURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Jenna+Galbut/Jenna+Face.png",
+        "timeUploaded": "2016-03-11T05:00:00.000Z",
+        "videoDescription": "Check us out playing our favorite song in VR",
+        "videoDuration": 98,
+        "videoID": 2,
+        "videoLikes": 2000,
+        "videoName": "#Impurities #Collagens",
+        "videoThumbURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Jenna+Galbut/Delicious.png",
+        "videoType": 0,
+        "videoURL": "jenna_3.mp4"
+      }
+    ]
+  }
+}

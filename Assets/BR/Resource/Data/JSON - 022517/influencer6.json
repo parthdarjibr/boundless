@@ -1,0 +1,38 @@
+{
+  "videos": {
+    "video": [
+      {
+        "currUserLikeStatus": true,
+        "influencerBio": "Model, Actress, IG: mikalahstyles",
+        "influencerID": 6,
+        "influencerName": "MikalahStyles",
+        "influencerPicURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Mikalah/MikalahFace.png",
+        "timeUploaded": "2016-03-11T05:00:00.000Z",
+        "videoDescription": "This is a video description",
+        "videoDuration": 98,
+        "videoID": 0,
+        "videoLikes": 3000,
+        "videoName": "#ShopForStyle #WantItBuyIt",
+        "videoThumbURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Mikalah/Shopping.png",
+        "videoType": 0,
+        "videoURL": "mikalah_1.mp4"
+      },
+      {
+        "currUserLikeStatus": false,
+        "influencerBio": "Model, Actress, IG: mikalahstyles",
+        "influencerID": 6,
+        "influencerName": "MikalahStyles",
+        "influencerPicURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Mikalah/MikalahFace.png",
+        "timeUploaded": "2016-03-11T05:00:00.000Z",
+        "videoDescription": "Check us out playing our favorite song in VR",
+        "videoDuration": 98,
+        "videoID": 1,
+        "videoLikes": 2000,
+        "videoName": "#ModelLife #CantComplain",
+        "videoThumbURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Mikalah/alldayshoot.png",
+        "videoType": 0,
+        "videoURL": "mikalah_2.mp4"
+      }
+    ]
+  }
+}

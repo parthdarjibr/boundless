@@ -1,0 +1,38 @@
+{
+  "videos": {
+    "video": [
+      {
+        "currUserLikeStatus": true,
+        "influencerBio": "Instagram model IG: sierraaaskyee. Begin each day with a grateful heart.",
+        "influencerID": 7,
+        "influencerName": "Sierraaaskyee",
+        "influencerPicURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Sierra+Egan/SierraFace.png",
+        "timeUploaded": "2016-03-11T05:00:00.000Z",
+        "videoDescription": "This is a video description",
+        "videoDuration": 98,
+        "videoID": 0,
+        "videoLikes": 3000,
+        "videoName": "#BeachHouse #CravingSunlight",
+        "videoThumbURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Sierra+Egan/Inside.png",
+        "videoType": 0,
+        "videoURL": "sierra_1.mp4"
+      },
+      {
+        "currUserLikeStatus": false,
+        "influencerBio": "Instagram model IG: sierraaaskyee. Begin each day with a grateful heart.",
+        "influencerID": 7,
+        "influencerName": "Sierraaaskyee",
+        "influencerPicURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Sierra+Egan/SierraFace.png",
+        "timeUploaded": "2016-03-11T05:00:00.000Z",
+        "videoDescription": "Check us out playing our favorite song in VR",
+        "videoDuration": 98,
+        "videoID": 1,
+        "videoLikes": 2000,
+        "videoName": "#FunInTheSun #BeachTag",
+        "videoThumbURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Sierra+Egan/beach.png",
+        "videoType": 0,
+        "videoURL": "sierra_2.mp4"
+      }
+    ]
+  }
+}

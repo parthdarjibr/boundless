@@ -1,0 +1,70 @@
+{
+  "videos": {
+    "video": [
+      {
+        "currUserLikeStatus": false,
+        "influencerBio": "Demos that we'd like to present",
+        "influencerID": 0,
+        "influencerName": "NeonDemos",
+        "influencerPicURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Demo+and+Prototype/DemoFace.png",
+        "timeUploaded": "2016-03-11T05:00:00.000Z",
+        "videoDescription": "Check us out playing our favorite song in VR",
+        "videoDuration": 98,
+        "videoID": 0,
+        "videoLikes": 2000,
+        "videoName": "#Band6DOF",
+        "videoThumbURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Save+Ferris/studioheart.png",
+        "videoType": 2,
+        "videoURL": "demo_5.mp4"
+      },
+      {
+        "currUserLikeStatus": false,
+        "influencerBio": "We’re back! Your favorite ska punk band is back from the 90's and we’re bringing some of your favorites from our former years along with some new tricks up our sleeve.",
+        "influencerID": 4,
+        "influencerName": "SaveFerris",
+        "influencerPicURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Save+Ferris/Save+Ferris+Face.png",
+        "timeUploaded": "2016-03-11T05:00:00.000Z",
+        "videoDescription": "Check us out playing our favorite song in VR",
+        "videoDuration": 98,
+        "videoID": 1,
+        "videoLikes": 2000,
+        "videoName": "#BandNormal",
+        "videoThumbURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Save+Ferris/studioheart.png",
+        "videoType": 0,
+        "videoURL": "band_2.mp4"
+      },
+      {
+        "currUserLikeStatus": true,
+        "influencerBio": "Demos that we'd like to present",
+        "influencerID": 0,
+        "influencerName": "NeonDemos",
+        "influencerPicURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Demo+and+Prototype/DemoFace.png",
+        "timeUploaded": "2016-03-11T05:00:00.000Z",
+        "videoDescription": "This is a video description",
+        "videoDuration": 98,
+        "videoID": 2,
+        "videoLikes": 3000,
+        "videoName": "#BoundlessStitch",
+        "videoThumbURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Demo+and+Prototype/ZCamDemo.png",
+        "videoType": 0,
+        "videoURL": "demo_2.mp4"
+      },
+      {
+        "currUserLikeStatus": false,
+        "influencerBio": "Demos that we'd like to present",
+        "influencerID": 0,
+        "influencerName": "NeonDemos",
+        "influencerPicURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Demo+and+Prototype/DemoFace.png",
+        "timeUploaded": "2016-03-11T05:00:00.000Z",
+        "videoDescription": "Check us out playing our favorite song in VR",
+        "videoDuration": 98,
+        "videoID": 3,
+        "videoLikes": 2000,
+        "videoName": "#GoProStitch",
+        "videoThumbURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Demo+and+Prototype/OmniDemo.png",
+        "videoType": 0,
+        "videoURL": "demo_3.mp4"
+      }
+    ]
+  }
+}

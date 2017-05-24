@@ -1,0 +1,38 @@
+{
+  "videos": {
+    "video": [
+      {
+        "currUserLikeStatus": true,
+        "influencerBio": "Chief Plastic Surgeon at Bal Harbour Plastic Surgery. Trap King, CEO of SurgRecordz",
+        "influencerID": 1,
+        "influencerName": "DrMiami",
+        "influencerPicURL": "https://s3.amazonaws.com/public.boundlessreality.com/influencer_faces/Dr+Miami+Face.png",
+        "timeUploaded": "2016-03-11T05:00:00.000Z",
+        "videoDescription": "This is a video description",
+        "videoDuration": 98,
+        "videoID": 0,
+        "videoLikes": 3000,
+        "videoName": "#TummyTuck",
+        "videoThumbURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Dr+Miami/Tummy.png",
+        "videoType": 0,
+        "videoURL": "miami_1.mp4"
+      },
+      {
+        "currUserLikeStatus": true,
+        "influencerBio": "Chief Plastic Surgeon at Bal Harbour Plastic Surgery. Trap King, CEO of SurgRecordz",
+        "influencerID": 1,
+        "influencerName": "DrMiami",
+        "influencerPicURL": "https://s3.amazonaws.com/public.boundlessreality.com/influencer_faces/Dr+Miami+Face.png",
+        "timeUploaded": "2016-03-11T05:00:00.000Z",
+        "videoDescription": "This is a video description",
+        "videoDuration": 98,
+        "videoID": 1,
+        "videoLikes": 3000,
+        "videoName": "#ButtLift",
+        "videoThumbURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Dr+Miami/buttLift.png",
+        "videoType": 0,
+        "videoURL": "miami_2.mp4"
+      }
+    ]
+  }
+}

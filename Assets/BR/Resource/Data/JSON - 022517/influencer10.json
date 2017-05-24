@@ -1,0 +1,54 @@
+{
+  "videos": {
+    "video": [
+      {
+        "currUserLikeStatus": true,
+        "influencerBio": "That guy from ERB. Rapper. Actor. Raptor.",
+        "influencerID": 10,
+        "influencerName": "EpicLLOYD",
+        "influencerPicURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Epic+Lloyd/EpicLloydFace.png",
+        "timeUploaded": "2016-03-11T05:00:00.000Z",
+        "videoDescription": "This is a video description",
+        "videoDuration": 98,
+        "videoID": 0,
+        "videoLikes": 3000,
+        "videoName": "#Raptor #BringIt",
+        "videoThumbURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Epic+Lloyd/Epic.png",
+        "videoType": 0,
+        "videoURL": "demo_1.mp4"
+      },
+      {
+        "currUserLikeStatus": true,
+        "influencerBio": "That guy from ERB. Rapper. Actor. Raptor.",
+        "influencerID": 10,
+        "influencerName": "EpicLLOYD",
+        "influencerPicURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Epic+Lloyd/EpicLloydFace.png",
+        "timeUploaded": "2016-03-11T05:00:00.000Z",
+        "videoDescription": "This is a video description",
+        "videoDuration": 98,
+        "videoID": 1,
+        "videoLikes": 3000,
+        "videoName": "#SaltMines #Regrets",
+        "videoThumbURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Epic+Lloyd/Angry.png",
+        "videoType": 0,
+        "videoURL": "demo_1.mp4"
+      },
+      {
+        "currUserLikeStatus": true,
+        "influencerBio": "That guy from ERB. Rapper. Actor. Raptor.",
+        "influencerID": 10,
+        "influencerName": "EpicLLOYD",
+        "influencerPicURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Epic+Lloyd/EpicLloydFace.png",
+        "timeUploaded": "2016-03-11T05:00:00.000Z",
+        "videoDescription": "This is a video description",
+        "videoDuration": 98,
+        "videoID": 2,
+        "videoLikes": 3000,
+        "videoName": "#Bromance #ERB",
+        "videoThumbURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Epic+Lloyd/Loving.png",
+        "videoType": 0,
+        "videoURL": "demo_1.mp4"
+      }
+    ]
+  }
+}

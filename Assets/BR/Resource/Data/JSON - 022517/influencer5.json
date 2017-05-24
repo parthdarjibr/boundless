@@ -1,0 +1,22 @@
+{
+  "videos": {
+    "video": [
+      {
+        "currUserLikeStatus": true,
+        "influencerBio": "International model, street art fanatic.",
+        "influencerID": 5,
+        "influencerName": "marooshk",
+        "influencerPicURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Marina/MarinaFace.png",
+        "timeUploaded": "2016-03-11T05:00:00.000Z",
+        "videoDescription": "This is a video description",
+        "videoDuration": 98,
+        "videoID": 0,
+        "videoLikes": 3000,
+        "videoName": "#StudioTour #KaiStreetArt",
+        "videoThumbURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Marina/Studio.png",
+        "videoType": 0,
+        "videoURL": "marina_1.mp4"
+      }
+    ]
+  }
+}

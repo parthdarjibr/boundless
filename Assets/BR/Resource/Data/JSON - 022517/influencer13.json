@@ -1,0 +1,54 @@
+{
+  "videos": {
+    "video": [
+      {
+        "currUserLikeStatus": true,
+        "influencerBio": "FESTIVAL OF LIGHT tour has low ticket warnings in select areas! See you guys at the show! LETS GO!",
+        "influencerID": 13,
+        "influencerName": "Matisyahu",
+        "influencerPicURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Matisyahu/MatisyahuFace.png",
+        "timeUploaded": "2016-03-11T05:00:00.000Z",
+        "videoDescription": "This is a video description",
+        "videoDuration": 98,
+        "videoID": 0,
+        "videoLikes": 3000,
+        "videoName": "#NewLook",
+        "videoThumbURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Matisyahu/Shaved.png",
+        "videoType": 0,
+        "videoURL": "demo_1.mp4"
+      },
+      {
+        "currUserLikeStatus": true,
+        "influencerBio": "FESTIVAL OF LIGHT tour has low ticket warnings in select areas! See you guys at the show! LETS GO!",
+        "influencerID": 13,
+        "influencerName": "Matisyahu",
+        "influencerPicURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Matisyahu/MatisyahuFace.png",
+        "timeUploaded": "2016-03-11T05:00:00.000Z",
+        "videoDescription": "This is a video description",
+        "videoDuration": 98,
+        "videoID": 1,
+        "videoLikes": 3000,
+        "videoName": "#PeopleKnowMe #JustAnArtist",
+        "videoThumbURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Matisyahu/Beard.png",
+        "videoType": 0,
+        "videoURL": "demo_1.mp4"
+      },
+      {
+        "currUserLikeStatus": true,
+        "influencerBio": "FESTIVAL OF LIGHT tour has low ticket warnings in select areas! See you guys at the show! LETS GO!",
+        "influencerID": 13,
+        "influencerName": "Matisyahu",
+        "influencerPicURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Matisyahu/MatisyahuFace.png",
+        "timeUploaded": "2016-03-11T05:00:00.000Z",
+        "videoDescription": "This is a video description",
+        "videoDuration": 98,
+        "videoID": 2,
+        "videoLikes": 3000,
+        "videoName": "#AllThatHistory",
+        "videoThumbURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Matisyahu/Wall.png",
+        "videoType": 0,
+        "videoURL": "demo_1.mp4"
+      }
+    ]
+  }
+}

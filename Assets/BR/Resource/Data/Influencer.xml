@@ -1,0 +1,12 @@
+﻿{
+    "influencer":
+      {
+        "currUserFollowStatus": false,
+        "influencerBio": "Demos that we'd like to present",
+        "influencerID": 0,
+        "influencerName": "NeonDemos",
+        "influencerPicURL": "https://s3-us-west-2.amazonaws.com/public.goboundless.io/Influencer+Profile+Assets/Demo+and+Prototype/DemoFace.png",
+        "totalFollowers": 24400,
+        "totalVideos": 2
+      }
+}
