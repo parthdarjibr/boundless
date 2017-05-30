@@ -58,7 +58,7 @@ namespace BR.App {
 		void Awake() {
 			if (_instance == null) {
 				_instance = this;
-				DontDestroyOnLoad (this.gameObject);
+				// DontDestroyOnLoad (this.gameObject);
 
 				ViewObjectStack = new Stack ();
 			}
@@ -89,7 +89,13 @@ namespace BR.App {
 			if (influencerPrefab == null) {
 				return;
 			}
-				
+			
+            if(!ConnectionManager.Instance().isNetworkAvailable)
+            {
+                ConnectionManager.Instance().ShowNetworkError();
+                return;
+            }
+
 			// The view can be instantiated only on the UI canvas
 			GoToViewObject(ViewObject.ObjectType.UI);
 
@@ -267,7 +273,6 @@ namespace BR.App {
 
 			//homeObject.transform.localScale = Vector3.one;
 
-
 			CanvasObject homeObject = homePrefab.GetComponent<CanvasObject> ();
 			// Set the background
 			GameObject background = (GameObject)Instantiate (appBackground, UICanvas.transform);
@@ -284,18 +289,24 @@ namespace BR.App {
 			// First instantiation, add the ui object to stack
 			ViewObjectStack.Push (v);
 
-			// Setup the views
-			StartCoroutine(homeObject.GetComponent<HomePageLoader> ().SetupHomeScreenOptimized ());
-		}
+            // Do entitlement check
+            Oculus.Platform.Core.AsyncInitialize("1636213263075199");
+            
+            // Check entitlement state
+            Oculus.Platform.Entitlements.IsUserEntitledToApplication().OnComplete(EntitlementCheckCallback);
+            // StartCoroutine(homePrefab.GetComponent<HomePageLoader>().SetupHomeScreenOptimized());
 
-		/// <summary>
-		/// Decides the type of the video, instantiates appropriate video player
-		/// Removes previous object in view
-		/// Adds videoplayer to the view stack
-		/// Sends data to VideoPlayerMenu script for ui setup
-		/// </summary>
-		/// <param name="video">Video.</param>
-		public void SetupVideoView(VideoDetail video, GameObject videoPrefab) {
+            // Home page is setup in entitlement check handler          
+        }
+
+        /// <summary>
+        /// Decides the type of the video, instantiates appropriate video player
+        /// Removes previous object in view
+        /// Adds videoplayer to the view stack
+        /// Sends data to VideoPlayerMenu script for ui setup
+        /// </summary>
+        /// <param name="video">Video.</param>
+        public void SetupVideoView(VideoDetail video, GameObject videoPrefab) {
 			// Disable interaction with the current canvas
 			ViewObject currentViewObject = GetLastViewObject();
 
@@ -418,7 +429,8 @@ namespace BR.App {
 					// Go to oculus ui
 
 					Debug.Log("Oculus UI");
-					OVRManager.PlatformUIConfirmQuit();
+                        // OVRManager.PlatformUIGlobalMenu();
+                        OVRManager.PlatformUIConfirmQuit();
 				}
 				break;
 			case ViewObject.ObjectType.VIDEO:
@@ -782,8 +794,45 @@ namespace BR.App {
 		private void SetupVideoPlayer() {
 			
 		}
-		#endregion
-	}
+
+        void EntitlementCheckCallback(Oculus.Platform.Message msg)
+        {
+            if (!msg.IsError)
+            {
+                // Entitlement check passed
+                // Load home page
+                // ViewManagerUtility.Instance().SetupHomeView();
+                // ShowEntitlementCheckError();
+                // CanvasObject homeObject = homePrefab.GetComponent<CanvasObject>();
+                StartCoroutine(homePrefab.GetComponent<HomePageLoader>().SetupHomeScreenOptimized());
+            }
+            else
+            {
+                // Entitlement check failed
+                ShowEntitlementCheckError();
+
+            }
+        }
+
+        void ShowEntitlementCheckError()
+        {
+            ErrorDetail ed = new ErrorDetail();
+            ed.SetErrorTitle("Unauthorized Access");
+            ed.SetErrorDescription("We are unable to verify the app. Please log in or check your internet connection and try again.");
+
+            // Associate this error detail with an action
+            // ed.AddToDictionary(ErrorDetail.ResponseType.RETRY, CheckForInternetAgain);
+            ed.AddToDictionary(ErrorDetail.ResponseType.EXIT, new UnityEngine.Events.UnityAction(delegate {
+                ViewManagerUtility.Instance().BackButtonPressed();
+                OVRManager.PlatformUIConfirmQuit();
+                // OVRManager.PlatformUIGlobalMenu();
+            }));
+
+            ViewManagerUtility.Instance().SetupErrorView(ed);
+        }
+
+        #endregion
+    }
 }
 
 /*

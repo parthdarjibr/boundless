@@ -32,7 +32,7 @@ namespace BR.App {
 			if (!Exists ())
 				instance = this;
 
-			DontDestroyOnLoad (this.gameObject);
+			// DontDestroyOnLoad (this.gameObject);
 			audioSource = GetComponent<AudioSource> ();
 		}
 

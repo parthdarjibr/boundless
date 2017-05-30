@@ -30,7 +30,7 @@ namespace BR.App {
 			if (_instance == null)
 				_instance = this;
 
-			DontDestroyOnLoad (this.gameObject);
+			// DontDestroyOnLoad (this.gameObject);
 		}
 
         private void OnDestroy()

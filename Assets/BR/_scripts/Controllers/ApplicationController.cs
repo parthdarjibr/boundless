@@ -57,7 +57,7 @@ namespace BR.App {
 			if (_instance == null) {
 				_instance = this;
 			}
-			DontDestroyOnLoad (this.gameObject);
+			// DontDestroyOnLoad (this.gameObject);
 //			Debug.Log (UnityEngine.VR.VRSettings.renderScale);
 //			Debug.Log (QualitySettings.antiAliasing);
 
@@ -79,15 +79,23 @@ namespace BR.App {
 		}
 
 		void Start() {
-			// Setup the home page as application Starts
-			ViewManagerUtility.Instance().SetupHomeView();
-		}
+            // Setup the home page as application Starts
+            ViewManagerUtility.Instance().SetupHomeView();
+        }
 
 		private float timeSinceLastCalled;
 
 		private float delay = 5f;
 
 		void Update() {
+
+            if(Input.GetKeyUp(KeyCode.A))
+            {
+                // UnityEngine.SceneManagement.SceneManager.UnloadScene(0);
+                // UnityEngine.SceneManagement.SceneManager.LoadScene(0);
+                Application.LoadLevel(Application.loadedLevel);
+            }
+
             if(OVRInput.GetDown(OVRInput.Button.Two))
             {
                 // Start click timer
@@ -102,7 +110,9 @@ namespace BR.App {
                 {
                     // This is a long press
                     // Recenter controller
-                    UnityEngine.VR.InputTracking.Recenter();
+                    // UnityEngine.VR.InputTracking.Recenter();
+                    // OVRManager.PlatformUIConfirmQuit();
+                    OVRManager.PlatformUIGlobalMenu();
 
                     // Reset timer variables
                     clicking = false;
@@ -110,7 +120,11 @@ namespace BR.App {
                 }
             }
 
-			if(Input.GetKeyUp(KeyCode.Escape) || OVRInput.GetUp(OVRInput.Button.Two)) {
+#if UNITY_ANDROID
+                if(OVRInput.GetUp(OVRInput.Button.Two)) { 
+#elif
+                if(Input.GetKeyUp(Keycode.Escape)) {
+#endif
                 // Reset timer variables
                 clicking = false;
 
@@ -121,7 +135,7 @@ namespace BR.App {
 			}
 
             
-			#region GC CODE
+#region GC CODE
 
 			timeSinceLastCalled += Time.deltaTime;
 			if (timeSinceLastCalled > delay)
@@ -129,7 +143,7 @@ namespace BR.App {
 				System.GC.Collect();
 				timeSinceLastCalled = 0f;
 			}
-			#endregion
+#endregion
 		}
 
 		void OnApplicationPause(bool pauseState) {
@@ -142,11 +156,21 @@ namespace BR.App {
 					ed.SetErrorTitle ("Connect to Wifi");
 					ed.SetErrorDescription ("Wifi connection is required to use the app");
 
-					// Associate this error detail with an action
-					// ed.AddToDictionary (ErrorDetail.ResponseType.RETRY, SetupHomeScreen);
-					ed.AddToDictionary(ErrorDetail.ResponseType.EXIT, new UnityEngine.Events.UnityAction( delegate {
-						// Debug.Log("Oculus UI");
-						OVRManager.PlatformUIConfirmQuit();
+                    /*
+                    // Associate this error detail with an action
+                    // Add a reset button to the panel
+                    ed.AddToDictionary(ErrorDetail.ResponseType.RETRY, new UnityEngine.Events.UnityAction(delegate
+                    {
+                        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+                    }));
+                    */
+
+                    // Associate this error detail with an action
+                    // ed.AddToDictionary (ErrorDetail.ResponseType.RETRY, SetupHomeScreen);
+                    ed.AddToDictionary(ErrorDetail.ResponseType.EXIT, new UnityEngine.Events.UnityAction( delegate {
+                        // Debug.Log("Oculus UI");
+                        // OVRManager.PlatformUIGlobalMenu();
+                        OVRManager.PlatformUIConfirmQuit();
 					}));
 					ApplicationController.Instance ().OpenErrorView (ed);
 				}
@@ -154,9 +178,9 @@ namespace BR.App {
 			}
 		}
 
-		#endregion
+#endregion
 
-		#region PUBLIC METHODS
+#region PUBLIC METHODS
 
 		public void OpenInfluencerView(string userGid) {
 			// Do a lookup on the featured influencer dictionary
@@ -215,7 +239,8 @@ namespace BR.App {
 			ViewManagerUtility.Instance().SetupHomeView ();
 		}
 
-		#endregion
-	}
+        #endregion
+
+    }
 }
 

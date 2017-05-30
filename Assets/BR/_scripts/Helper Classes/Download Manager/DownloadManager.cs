@@ -64,7 +64,7 @@ namespace BR.BRUtilities {
 		void Awake() {
 			if (_instance == null) {
 				_instance = this;
-				DontDestroyOnLoad (this.gameObject);
+				// DontDestroyOnLoad (this.gameObject);
 			}
 
 			// Listen to events
@@ -153,6 +153,9 @@ namespace BR.BRUtilities {
 					if (obj.action != null) {
 						obj.action ();
 					}
+
+                    // Set progress bar value
+                    obj.progressBar.fillAmount = 0f;
 				}
 			} else {
 				// TODO Error - handle appropriately
@@ -179,6 +182,9 @@ namespace BR.BRUtilities {
 					if (obj.action != null) {
 						obj.action ();
 					}
+
+                    // Set progressbar value to 0
+                    obj.progressBar.fillAmount = 0f;
 				}
 			} else {
 				// TODO Error - handle appropriately

@@ -30,7 +30,7 @@ namespace BR.BRUtilities {
 		void Awake() {
 			if (instance == null)
 				instance = this;
-			DontDestroyOnLoad (this.gameObject);
+			// DontDestroyOnLoad (this.gameObject);
 		}
 
 		void Start() {

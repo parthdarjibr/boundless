@@ -35,7 +35,7 @@ namespace BR.BRUtilities {
 			if (!Exists ())
 				instance = this;
 
-			DontDestroyOnLoad (this.gameObject);
+			// DontDestroyOnLoad (this.gameObject);
 
 			deviceID = SystemInfo.deviceUniqueIdentifier;
 

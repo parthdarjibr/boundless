@@ -31,7 +31,7 @@ namespace BR.App {
 		void Awake() {
 			if (_instance == null)
 				_instance = this;
-			DontDestroyOnLoad (this.gameObject);
+			// DontDestroyOnLoad (this.gameObject);
 
 			if (videoListStack == null)
 				videoListStack = new Stack ();

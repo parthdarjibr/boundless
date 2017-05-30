@@ -12,10 +12,8 @@ using System.Collections;
 using BR.BRUtilities.UI;
 using BR.BRUtilities;
 using RenderHeads.Media.AVProVideo;
-using System.Collections.Generic;
-using System;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 
 namespace BR.App {
 	public class VideoPlayerManager : MonoBehaviour
@@ -231,15 +229,23 @@ namespace BR.App {
 					// Show error
 					ErrorDetail ed = new ErrorDetail ();
 					ed.SetErrorTitle ("Problem loading video");
-					ed.SetErrorDescription ("There was a problem loading the video. We apologize for the inconvenince.");
+					ed.SetErrorDescription ("Your device's internet connection has been interrupted. Please try reconnecting before continuing");
 
 					// Associate this error detail with an action
 					ed.AddToDictionary(ErrorDetail.ResponseType.CANCEL, new UnityEngine.Events.UnityAction( delegate {
 						ViewManagerUtility.Instance ().CloseVideoView ();
 
 					}));
+                    
+                    /*
+                    // Add a try again button
+                    ed.AddToDictionary(ErrorDetail.ResponseType.RETRY, new UnityEngine.Events.UnityAction(delegate
+                    {
+                        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+                    }));
+                    */
 
-					ApplicationController.Instance ().OpenErrorView (ed);
+                    ApplicationController.Instance ().OpenErrorView (ed);
 				}
 				break;
 			}

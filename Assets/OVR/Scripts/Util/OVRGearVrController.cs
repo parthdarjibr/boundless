@@ -42,7 +42,8 @@ public class OVRGearVrController : MonoBehaviour
 
     void Update()
     {
-        bool controllerConnected = OVRInput.IsControllerConnected(m_controller);
+        // bool controllerConnected = OVRInput.IsControllerConnected(m_controller);
+        bool controllerConnected = (OVRInput.GetActiveController() == m_controller);
 
         if ((controllerConnected != m_prevControllerConnected) || !m_prevControllerConnectedCached)
         {

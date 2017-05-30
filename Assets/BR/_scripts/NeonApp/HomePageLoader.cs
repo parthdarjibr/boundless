@@ -17,7 +17,7 @@ using UnityEngine.UI;
 using BR.BRUtilities.UI;
 using UnityEngine.EventSystems;
 using System;
-using System.Linq;
+using UnityEngine.SceneManagement;
 
 namespace BR.App {
 	public class HomePageLoader : MonoBehaviour
@@ -119,14 +119,23 @@ namespace BR.App {
 
 				ErrorDetail ed = new ErrorDetail ();
 				ed.SetErrorTitle ("Connect to Wifi");
-				ed.SetErrorDescription ("Wifi connection is required to use the app");
+				ed.SetErrorDescription ("A Wifi connection is required to use the app");
 
 				// Associate this error detail with an action
 				// ed.AddToDictionary (ErrorDetail.ResponseType.RETRY, SetupHomeScreen);
 				ed.AddToDictionary (ErrorDetail.ResponseType.EXIT, new UnityEngine.Events.UnityAction (delegate {
-					OVRManager.PlatformUIConfirmQuit ();
+                    // OVRManager.PlatformUIGlobalMenu ();
+                    OVRManager.PlatformUIConfirmQuit();
 				}));
-				ApplicationController.Instance ().OpenErrorView (ed);
+
+                /*
+                ed.AddToDictionary(ErrorDetail.ResponseType.RETRY, new UnityEngine.Events.UnityAction(delegate
+                {
+                    SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+                }));
+                */
+
+                ApplicationController.Instance ().OpenErrorView (ed);
 			} else {
 				// Execute home page query
 				string homeQueryUrl = QueryBuilder.Instance().BuildQuery(HomePageQuery);
@@ -136,48 +145,59 @@ namespace BR.App {
 				WWW www = new WWW(homeQueryUrl);
 				yield return www;
 
-				if(www.error == null) {
-					string homeQueryJson = www.text;
-					// Get the video and influencers list from the json
-					// homeVideoList = queryParser.GetVideoList (homeQueryJson);
-					// influencerList = queryParser.GetInfluencerList (homeQueryJson, true, out featuredInfluencerDict);
+                if (www.error == null) {
+                    string homeQueryJson = www.text;
+                    // Get the video and influencers list from the json
+                    // homeVideoList = queryParser.GetVideoList (homeQueryJson);
+                    // influencerList = queryParser.GetInfluencerList (homeQueryJson, true, out featuredInfluencerDict);
 
-					// Optimized for jsonutility
-					JsonUtilityHelper.instance.GetHomeLists(homeQueryJson, out homeVideoList, out influencerList, out featuredInfluencerDict);
-					// homeVideoList = JsonUtilityHelper.instance.GetVideoList(homeQueryJson, false);
-					// influencerList = JsonUtilityHelper.instance.GetInfluencerList (homeQueryJson, out featuredInfluencerDict, true, false);
-				
+                    // Optimized for jsonutility
+                    JsonUtilityHelper.instance.GetHomeLists(homeQueryJson, out homeVideoList, out influencerList, out featuredInfluencerDict);
+                    // homeVideoList = JsonUtilityHelper.instance.GetVideoList(homeQueryJson, false);
+                    // influencerList = JsonUtilityHelper.instance.GetInfluencerList (homeQueryJson, out featuredInfluencerDict, true, false);
 
-					// Add influencer details to videos
-					foreach (VideoEdges edge in homeVideoList) {
-						VideoDetail video = edge.node;
-						InfluencerDetail influencer = new InfluencerDetail ();
-						featuredInfluencerDict.TryGetValue (video.userGid, out influencer);
 
-						if (influencer != null) {
-							// If influencer is found, add their details to the video object
-							video.SetUserHandle (influencer.handle);
-							video.SetUserPicUrl (influencer.picUrl);
-							video.SetUserGid (influencer.gid);
-						}
-					}
+                    // Add influencer details to videos
+                    foreach (VideoEdges edge in homeVideoList) {
+                        VideoDetail video = edge.node;
+                        InfluencerDetail influencer = new InfluencerDetail();
+                        featuredInfluencerDict.TryGetValue(video.userGid, out influencer);
 
-					// Remove all videos from influencer list and remove ones with "show in view" as false
-					influencerList.RemoveAll(inf => inf.node.showInView == false);
+                        if (influencer != null) {
+                            // If influencer is found, add their details to the video object
+                            video.SetUserHandle(influencer.handle);
+                            video.SetUserPicUrl(influencer.picUrl);
+                            video.SetUserGid(influencer.gid);
+                        }
+                    }
 
-					// Setup the current playlist
-					// Add this list to the playlist
-					VideoPlaylistManager.Instance().AddPlaylistToStack(homeVideoList);
+                    // Remove all videos from influencer list and remove ones with "show in view" as false
+                    influencerList.RemoveAll(inf => inf.node.showInView == false);
 
-					// Set up the category video lists
-					foreach (VideoDetail.Category cat in allCategories) {
-						CreateAndSetCategoryPlaylist (cat);
-					}
+                    // Setup the current playlist
+                    // Add this list to the playlist
+                    VideoPlaylistManager.Instance().AddPlaylistToStack(homeVideoList);
 
-					// Setup scroll rects
-					influencerScrollRect.InitializeCreatorAdapter (influencerList);
-					videoScrollRect.InitializeVideoAdapter(homeVideoList);
+                    // Set up the category video lists
+                    foreach (VideoDetail.Category cat in allCategories) {
+                        CreateAndSetCategoryPlaylist(cat);
+                    }
 
+                    // Setup scroll rects
+                    influencerScrollRect.InitializeCreatorAdapter(influencerList);
+                    videoScrollRect.InitializeVideoAdapter(homeVideoList);
+
+                    categoryButtons[0].onClick.RemoveAllListeners();
+                    categoryButtons[1].onClick.RemoveAllListeners();
+                    categoryButtons[2].onClick.RemoveAllListeners();
+                    categoryButtons[3].onClick.RemoveAllListeners();
+
+                    categoryButtons[0].onClick.AddListener(delegate{ CategoryClicked(categoryButtons[0]); });
+                    categoryButtons[1].onClick.AddListener(delegate{ CategoryClicked(categoryButtons[1]); });
+                    categoryButtons[2].onClick.AddListener(delegate{ CategoryClicked(categoryButtons[2]); });
+                    categoryButtons[3].onClick.AddListener(delegate{ CategoryClicked(categoryButtons[3]); });
+
+                    /*
 					// Setup category buttons
 					// Setup the category buttons
 					foreach (Button b in categoryButtons) {
@@ -185,24 +205,17 @@ namespace BR.App {
 						b.onClick.AddListener (delegate {
 							CategoryClicked(b);
 						});
-
-						/*
-					if (categoryAnimator.imageCategory != null) {
-						categoryAnimator.imageCategory.onClick.RemoveAllListeners ();
-						categoryAnimator.imageCategory.onClick.AddListener (delegate {
-							CategoryClicked (b);
-						});
-					}*/
 					}
+                    */
 
-					/*
+                    /*
 					// Setup the video and creator lists
 					videoGridAdapter = new VideoScrollRectItemsAdapter ();
 					creatorGridAdapter = new CreatorScrollRectItemsAdapter ();*/
 
-					// StartCoroutine (DelayedInitCreators ());
-					// StartCoroutine (DelayedInitVideos ());
-				}
+                    // StartCoroutine (DelayedInitCreators ());
+                    // StartCoroutine (DelayedInitVideos ());
+                }
 			}
 		}
 

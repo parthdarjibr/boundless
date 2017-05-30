@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System;
 using System.Net;
 using System.Net.NetworkInformation;
+using UnityEngine.SceneManagement;
 
 namespace BR.App {
 	public class ConnectionManager : MonoBehaviour
@@ -35,7 +36,7 @@ namespace BR.App {
 				instance = this;
 			}
 
-			DontDestroyOnLoad (this.gameObject);
+			// DontDestroyOnLoad (this.gameObject);
 			NetworkChange.NetworkAvailabilityChanged += NetworkChange_NetworkAvailabilityChanged;
 
 			// Check for internet on start
@@ -110,18 +111,26 @@ namespace BR.App {
 			}
 		}
 
-		void ShowNetworkError() {
+		public void ShowNetworkError() {
 			ErrorDetail ed = new ErrorDetail();
 			ed.SetErrorTitle (errorTitle);
 			ed.SetErrorDescription (errorDescription);
 
-			// Associate this error detail with an action
-			// ed.AddToDictionary(ErrorDetail.ResponseType.RETRY, CheckForInternetAgain);
-			ed.AddToDictionary(ErrorDetail.ResponseType.EXIT, new UnityEngine.Events.UnityAction(delegate {
-				ViewManagerUtility.Instance().BackButtonPressed();
-				OVRManager.PlatformUIConfirmQuit();
-			}));
+            /*
+            // Associate this error detail with an action
+            // Add a reset button to the panel
+            ed.AddToDictionary(ErrorDetail.ResponseType.RETRY, new UnityEngine.Events.UnityAction(delegate
+            {
+                SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+            }));
+            */
 
+            ed.AddToDictionary(ErrorDetail.ResponseType.EXIT, new UnityEngine.Events.UnityAction(delegate {
+				ViewManagerUtility.Instance().BackButtonPressed();
+                OVRManager.PlatformUIConfirmQuit();
+				// OVRManager.PlatformUIGlobalMenu();
+			}));
+            
 			ViewManagerUtility.Instance().SetupErrorView(ed);
 		}
 
