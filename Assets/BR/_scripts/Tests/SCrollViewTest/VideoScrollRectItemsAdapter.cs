@@ -16,7 +16,7 @@ public class VideoScrollRectItemsAdapter : GridAdapter<VideoDetailParams, VideoI
 	List<VideoEdges> videos = new List<VideoEdges>();
 	public int CellCount { get { return videos.Count; } }
 
-	protected override void UpdateCellViewHolder(VideoItemsViewHolder viewHolder) {
+	protected override void UpdateCellViewsHolder(VideoItemsViewHolder viewHolder) {
 		viewHolder.thumbnail.texture = Parameters.defaultThumbnail;
 		var model = videos [viewHolder.itemIndex].node;
 
@@ -25,7 +25,46 @@ public class VideoScrollRectItemsAdapter : GridAdapter<VideoDetailParams, VideoI
 
 		int itemIndexAtRequest = viewHolder.itemIndex;
 		string requestedPath = model.thumbnailUrl;
-		SimpleImageDownloader.Instance.Download (
+        var request = new SimpleImageDownloader.Request()
+        {
+            url = requestedPath,
+            onDone = texture =>
+            {
+                if (IsModelStillValid(viewHolder.itemIndex, itemIndexAtRequest, requestedPath))
+                {
+                    viewHolder.thumbProgress.fillAmount = 0f;
+                    /*
+                    if (viewHolder.thumbnail.texture)
+                    {
+                        var as2D = viewHolder.thumbnail.texture as Texture2D;
+                        if(as2D)
+                        {
+                            texture.LoadTextureInto(as2D);
+                            return;
+                        }
+                        MonoBehaviour.Destroy(viewHolder.thumbnail.texture);
+                    }*/
+
+                    viewHolder.thumbnail.texture = texture.CreateTextureFromReceivedData();
+                }
+            },
+            onProgress = progress =>
+            {
+                if (IsModelStillValid(viewHolder.itemIndex, itemIndexAtRequest, requestedPath))
+                    viewHolder.thumbProgress.fillAmount = 1f - progress;
+            },
+            onError = () =>
+            {
+                if (IsModelStillValid(viewHolder.itemIndex, itemIndexAtRequest, requestedPath))
+                {
+                    Debug.Log("Error downloading thumbnail image");
+                }
+            }
+        };
+        SimpleImageDownloader.Instance.Enqueue(request);
+
+        /*
+        SimpleImageDownloader.Instance.Download (
 			requestedPath,
 			texture => {
 				if (IsModelStillValid (viewHolder.itemIndex, itemIndexAtRequest, requestedPath)) {
@@ -43,10 +82,10 @@ public class VideoScrollRectItemsAdapter : GridAdapter<VideoDetailParams, VideoI
 					viewHolder.thumbProgress.fillAmount = 1f - progress;
 			}
 		);
-
-		// Setup buttons
-		// Remove all event handlers to begin with
-		viewHolder.btnThumb.onClick.RemoveAllListeners();
+        */
+        // Setup buttons
+        // Remove all event handlers to begin with
+        viewHolder.btnThumb.onClick.RemoveAllListeners();
 		viewHolder.btnPlay.onClick.RemoveAllListeners();
 
 		viewHolder.btnThumb.onClick.AddListener (delegate {
@@ -71,7 +110,47 @@ public class VideoScrollRectItemsAdapter : GridAdapter<VideoDetailParams, VideoI
 
 			viewHolder.tvInfluencerName.text = "@" + model.userHandle;
 			string userPicPath = model.userPicUrl;
-			SimpleImageDownloader.Instance.Download (
+
+            var creatorRequest = new SimpleImageDownloader.Request()
+            {
+                url = userPicPath,
+                onDone = texture =>
+                {
+                    if (IsModelStillValid(viewHolder.itemIndex, itemIndexAtRequest, userPicPath))
+                    {
+                        viewHolder.infPicProgress.fillAmount = 0f;
+                        /*
+                        if(viewHolder.infPicture.texture)
+                        {
+                            var as2D = viewHolder.infPicture.texture as Texture2D;
+                            if(as2D)
+                            {
+                                texture.LoadTextureInto(as2D);
+                                return;
+                            }
+                            MonoBehaviour.Destroy(viewHolder.infPicture.texture);
+                        }*/
+                        viewHolder.infPicture.texture = texture.CreateTextureFromReceivedData();
+                    }
+                },
+                onProgress = progress =>
+                {
+                    if (IsModelStillValid(viewHolder.itemIndex, itemIndexAtRequest, userPicPath))
+                        viewHolder.infPicProgress.fillAmount = 1f - progress;
+                },
+                onError = () =>
+                {
+                    if (IsModelStillValid(viewHolder.itemIndex, itemIndexAtRequest, userPicPath))
+                    {
+                        Debug.Log("Error downloading influencer image");
+                    }
+                }
+            };
+
+            SimpleImageDownloader.Instance.Enqueue(creatorRequest);
+
+            /*
+            SimpleImageDownloader.Instance.Download (
 				userPicPath,
 				texture => {
 					if (IsModelStillValid (viewHolder.itemIndex, itemIndexAtRequest, userPicPath)) {
@@ -89,7 +168,8 @@ public class VideoScrollRectItemsAdapter : GridAdapter<VideoDetailParams, VideoI
 						viewHolder.infPicProgress.fillAmount = 1f - progress;
 				}
 			);
-			viewHolder.btnInfluencer.onClick.RemoveAllListeners ();
+            */
+            viewHolder.btnInfluencer.onClick.RemoveAllListeners ();
 			viewHolder.btnInfluencer.onClick.AddListener (delegate {
 				// Execute the on exit handler
 				ExecuteEvents.Execute (viewHolder.btnInfluencer.gameObject, new PointerEventData (EventSystem.current), ExecuteEvents.pointerExitHandler);

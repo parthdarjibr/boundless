@@ -90,12 +90,14 @@ public class ScrollManager : MonoBehaviour
         {
             if (shouldScroll)
             {
-                if (OVRInput.GetDown(CurvedUIInputModule.Instance.CustomControllerSwipeUp))
+                if (OVRInput.GetDown(CurvedUIInputModule.Instance.CustomControllerSwipeUp) || Input.GetKeyDown(KeyCode.Q))
                 {
+                    Debug.Log("up");
                     PerformScroll(ScrollDirection.Up);
                 }
-                if(OVRInput.GetDown(CurvedUIInputModule.Instance.CustomControllerSwipeDown))
+                if(OVRInput.GetDown(CurvedUIInputModule.Instance.CustomControllerSwipeDown) || Input.GetKeyDown(KeyCode.W))
                 {
+                    Debug.Log("down");
                     PerformScroll(ScrollDirection.Down);
                 }
                 shouldScroll = false;
@@ -252,13 +254,13 @@ public class ScrollManager : MonoBehaviour
                 if (scrollDirection > 0)
                 {
                     // Scroll down
-                    creatorGridAdapter.SmoothScrollTo(creatorGridParams.GetGroupIndex(scrollTo), 0.5f, null);
+                    creatorGridAdapter.SmoothScrollTo(creatorGridParams.GetGroupIndex(scrollTo), 0.5f);
                     currentIndex += amountToScroll;
                 }
                 else if (scrollDirection < 0)
                 {
                     // Scroll up
-                    creatorGridAdapter.SmoothScrollTo(creatorGridParams.GetGroupIndex(scrollTo), 0.5f, null);
+                    creatorGridAdapter.SmoothScrollTo(creatorGridParams.GetGroupIndex(scrollTo), 0.5f);
                     currentIndex -= amountToScroll;
                 }
                 break;
@@ -268,13 +270,13 @@ public class ScrollManager : MonoBehaviour
                 if (scrollDirection > 0)
                 {
                     // Scroll down 
-                    videoGridAdapter.SmoothScrollTo(videoGridParams.GetGroupIndex(scrollTo), 0.5f, null);
+                    videoGridAdapter.SmoothScrollTo(videoGridParams.GetGroupIndex(scrollTo), 0.5f);
                     currentIndex += amountToScroll;
                 }
                 else if (scrollDirection < 0)
                 {
                     // Scroll up
-                    videoGridAdapter.SmoothScrollTo(videoGridParams.GetGroupIndex(scrollTo), 0.5f, null);
+                    videoGridAdapter.SmoothScrollTo(videoGridParams.GetGroupIndex(scrollTo), 0.5f);
                     currentIndex -= amountToScroll;
                 }
                 break;

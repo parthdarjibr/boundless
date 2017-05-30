@@ -4,105 +4,119 @@ using UnityEngine.UI;
 using System;
 using frame8.Logic.Misc.Other.Extensions;
 
-public class ExpandCollapseOnClick : MonoBehaviour {
-
-    [Tooltip("will be taken from this object, if not specified")]
-    public Button button;
-    [HideInInspector]
-    public float nonExpandedSize = -1f;
-    [HideInInspector]
-    public bool expanded;
-
-    public float expandFactor = 2f;
-    public float animDuration = .2f;
-    //float nonExpandedSize;
-    float startSize;
-    float endSize;
-    float animStart;
-    float animEnd;
-    bool animating = false;
-    RectTransform rectTransform;
-
-    public ISizeChangesHandler sizeChangesHandler;
-
-    // Use this for initialization
-    void Awake ()
+namespace frame8.ScrollRectItemsAdapter.Util
+{
+    /// <summary>Utility to expand an item when it's clicked, dispatching the size change request via <see cref="ISizeChangesHandler"/> for increased flexibility</summary>
+    public class ExpandCollapseOnClick : MonoBehaviour
     {
-        rectTransform = transform as RectTransform;
+        /// <summary>
+        /// The button to whose onClock to subscribe. If not specified, will try to GetComponent&lt;Button&gt; from the GO containing this script 
+        /// </summary>
+        [Tooltip("will be taken from this object, if not specified")]
+        public Button button;
 
-        //nonExpandedSize = (transform as RectTransform).rect.height;
+        /// <summary>When expanding, the initial size will be <see cref="nonExpandedSize"/> and the target size will be <see cref="nonExpandedSize"/> x <see cref="expandFactor"/>; opposite is true when collapsing</summary>
+        public float expandFactor = 2f;
 
-        if (button == null)
-            button = GetComponent<Button>();
+        /// <summary>The duration of the expand(or collapse) animation</summary>
+        public float animDuration = .2f;
 
-        button.onClick.AddListener(OnClicked);
+        /// <summary>This is the size from which the item will start expanding</summary>
+        [HideInInspector]
+        public float nonExpandedSize = -1f;
 
-    }
+        /// <summary>This keeps track of the 'expanded' state. If true, on click the animation will set <see cref="nonExpandedSize"/> as the target size; else, <see cref="nonExpandedSize"/> x <see cref="expandFactor"/> </summary>
+        [HideInInspector]
+        public bool expanded;
 
-    public void OnClicked()
-    {
-        if (animating)
-            return;
+        float startSize;
+        float endSize;
+        float animStart;
+        //float animEnd;
+        bool animating = false;
+        RectTransform rectTransform;
 
-        if (nonExpandedSize < 0f)
-            return;
+        public ISizeChangesHandler sizeChangesHandler;
 
-        animating = true;
-        animStart = Time.time;
-        animEnd = animStart + animDuration;
-        //startSize = (transform as RectTransform).rect.height;
 
-        if (expanded) // shrinking
+        void Awake()
         {
-            startSize = nonExpandedSize * expandFactor;
-            endSize = nonExpandedSize;
+            rectTransform = transform as RectTransform;
+
+            if (button == null)
+                button = GetComponent<Button>();
+
+            button.onClick.AddListener(OnClicked);
         }
-        else // expanding
+
+        public void OnClicked()
         {
-            startSize = nonExpandedSize;
-            endSize = nonExpandedSize * expandFactor;
-        }
-    }
-	
-	// Update is called once per frame
-	void Update () {
-	    if (animating)
-        {
-            float elapsedTime = Time.time - animStart;
-            float t01 = elapsedTime / animDuration;
-            if (t01 >= 1f) // done
+            if (animating)
+                return;
+
+            if (nonExpandedSize < 0f)
+                return;
+
+            animating = true;
+            animStart = Time.time;
+            //animEnd = animStart + animDuration;
+
+            if (expanded) // shrinking
             {
-                t01 = 1f; // fill/clamp animation
-                animating = false;
+                startSize = nonExpandedSize * expandFactor;
+                endSize = nonExpandedSize;
             }
-
-            float size = Mathf.Lerp(startSize, endSize, t01);
-            //adapter.RequestChangeItemSizeAndUpdateLayout(transform as RectTransform, size);
-
-            //(transform as RectTransform).SetSizeFromParentEdgeWithCurrentAnchors(RectTransform.Edge.Top, Mathf.Lerp(startSize, endSize, t01));
-            if (sizeChangesHandler != null)
+            else // expanding
             {
-                bool accepted = sizeChangesHandler.HandleSizeChangeRequest(rectTransform, size);
+                startSize = nonExpandedSize;
+                endSize = nonExpandedSize * expandFactor;
+            }
+        }
 
-                // Interruption
-                if (!accepted)
-                    animating = false;
 
-                if (!animating) // done; even if it wasn't accepted, wether we should or shouldn't change the "expanded" state depends on the user's requirements. We chose to change it
+        void Update()
+        {
+            if (animating)
+            {
+                float elapsedTime = Time.time - animStart;
+                float t01 = elapsedTime / animDuration;
+                if (t01 >= 1f) // done
                 {
-                    expanded = !expanded;
-                    sizeChangesHandler.OnExpandedStateChanged(rectTransform, expanded);
+                    t01 = 1f; // fill/clamp animation
+                    animating = false;
+                }
+
+                float size = Mathf.Lerp(startSize, endSize, t01);
+                if (sizeChangesHandler != null)
+                {
+                    bool accepted = sizeChangesHandler.HandleSizeChangeRequest(rectTransform, size);
+
+                    // Interruption
+                    if (!accepted)
+                        animating = false;
+
+                    if (!animating) // done; even if it wasn't accepted, wether we should or shouldn't change the "expanded" state depends on the user's requirements. We chose to change it
+                    {
+                        expanded = !expanded;
+                        sizeChangesHandler.OnExpandedStateChanged(rectTransform, expanded);
+                    }
                 }
             }
-            //else // prefab
-
-
         }
-	}
 
-    public interface ISizeChangesHandler
-    {
-        bool HandleSizeChangeRequest(RectTransform rt, float newSize);
-        void OnExpandedStateChanged(RectTransform rt, bool expanded);
+        /// <summary>Interface to implement by the class that'll handle the size changes when the animation runs</summary>
+        public interface ISizeChangesHandler
+        {
+            /// <summary>Called each frame during animation</summary>
+            /// <param name="rt">The animated RectTransform</param>
+            /// <param name="newSize">The requested size</param>
+            /// <returns>If it was accepted</returns>
+            bool HandleSizeChangeRequest(RectTransform rt, float newSize);
+
+            /// <summary>Called when the animation ends and the item successfully expanded (<paramref name="expanded"/> is true) or collapsed (else)</summary>
+            /// <param name="rt">The animated RectTransform</param>
+            /// <param name="expanded">true if the item expanded. false, if collapsed</param>
+            void OnExpandedStateChanged(RectTransform rt, bool expanded);
+        }
     }
 }

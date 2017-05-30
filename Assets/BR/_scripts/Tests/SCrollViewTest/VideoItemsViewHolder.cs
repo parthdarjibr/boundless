@@ -8,7 +8,7 @@ using frame8.Logic.Misc.Other.Extensions;
 using frame8.ScrollRectItemsAdapter.Util.GridView;
 using frame8.ScrollRectItemsAdapter.Util;
 
-public class VideoItemsViewHolder : CellViewHolder {
+public class VideoItemsViewHolder : CellViewsHolder {
 	public RawImage thumbnail, infPicture;
 	public Text tvVideoName, tvInfluencerName;
 	public Image thumbProgress, infPicProgress;

@@ -8,26 +8,18 @@ namespace frame8.Logic.Misc.Other.Extensions
 {
     public static class RectTransformExtensions
     {
-        /// GetTop(), GetRight() etc. only work if there's no canvas scaling
+        /// <summary> GetTop(), GetRight() etc. only work if there's no canvas scaling</summary>
         public static float GetWorldTop(this RectTransform rt)
-        {
-            return rt.position.y + (1f - rt.pivot.y) * rt.rect.height;
-        }
+        { return rt.position.y + (1f - rt.pivot.y) * rt.rect.height; }
 
         public static float GetWorldBottom(this RectTransform rt)
-        {
-            return rt.position.y - rt.pivot.y * rt.rect.height;
-        }
+        { return rt.position.y - rt.pivot.y * rt.rect.height; }
 
         public static float GetWorldLeft(this RectTransform rt)
-        {
-            return rt.position.x - rt.pivot.x * rt.rect.width;
-        }
+        { return rt.position.x - rt.pivot.x * rt.rect.width; }
 
         public static float GetWorldRight(this RectTransform rt)
-        {
-            return rt.position.x + (1f - rt.pivot.x) * rt.rect.width;
-        }
+        { return rt.position.x + (1f - rt.pivot.x) * rt.rect.width; }
 
         /// <summary>
         /// It assumes the transform has a parent
@@ -100,18 +92,14 @@ namespace frame8.Logic.Misc.Other.Extensions
         //    child.anchorMax = anchorMax;
         //}
 
-        /// <summary>
-        /// NOTE: Use the optimized version if parent is known
-        /// </summary>
+        /// <summary> NOTE: Use the optimized version if parent is known </summary>
         public static void SetSizeFromParentEdgeWithCurrentAnchors(this RectTransform child, RectTransform.Edge fixedEdge, float newSize)
         {
             var par = child.parent as RectTransform;
             child.SetInsetAndSizeFromParentEdgeWithCurrentAnchors(par, fixedEdge, child.GetInsetFromParentEdge(par, fixedEdge), newSize);
         }
 
-        /// <summary>
-        /// Optimized version of SetSizeFromParentEdgeWithCurrentAnchors(RectTransform.Edge fixedEdge, float newSize) when parent is known
-        /// </summary>
+        /// <summary> Optimized version of SetSizeFromParentEdgeWithCurrentAnchors(RectTransform.Edge fixedEdge, float newSize) when parent is known </summary>
         /// <param name="parentHint"></param>
         /// <param name="fixedEdge"></param>
         /// <param name="newSize"></param>
@@ -120,9 +108,7 @@ namespace frame8.Logic.Misc.Other.Extensions
             child.SetInsetAndSizeFromParentEdgeWithCurrentAnchors(parentHint, fixedEdge, child.GetInsetFromParentEdge(parentHint, fixedEdge), newSize);
         }
 
-        /// <summary>
-        /// NOTE: Use the optimized version if parent is known
-        /// </summary>
+        /// <summary> NOTE: Use the optimized version if parent is known </summary>
         /// <param name="fixedEdge"></param>
         /// <param name="newInset"></param>
         /// <param name="newSize"></param>
@@ -131,9 +117,7 @@ namespace frame8.Logic.Misc.Other.Extensions
             child.SetInsetAndSizeFromParentEdgeWithCurrentAnchors(child.parent as RectTransform, fixedEdge, newInset, newSize);
         }
 
-        /// <summary>
-        /// Optimized version of SetInsetAndSizeFromParentEdgeWithCurrentAnchors(RectTransform.Edge fixedEdge, float newInset, float newSize) when parent is known
-        /// </summary>
+        /// <summary> Optimized version of SetInsetAndSizeFromParentEdgeWithCurrentAnchors(RectTransform.Edge fixedEdge, float newInset, float newSize) when parent is known </summary>
         /// <param name="parentHint"></param>
         /// <param name="fixedEdge"></param>
         /// <param name="newInset"></param>

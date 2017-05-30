@@ -20,7 +20,7 @@ public class CreatorScrollRectItemsAdapter : GridAdapter<CreatorDetailParams, Cr
 	List<InfluencerEdges> influencers = new List<InfluencerEdges>();
 	public int CellCount { get { return influencers.Count; } }
 
-	protected override void UpdateCellViewHolder(CreatorItemsViewHolder viewHolder) {
+	protected override void UpdateCellViewsHolder(CreatorItemsViewHolder viewHolder) {
 		viewHolder.infPicture.texture = _Params.defaultThumbnail;
 
 		var model = influencers [viewHolder.itemIndex].node;
@@ -31,6 +31,49 @@ public class CreatorScrollRectItemsAdapter : GridAdapter<CreatorDetailParams, Cr
 
 		string requestedPath = model.picUrl;
 
+
+        var request = new SimpleImageDownloader.Request()
+        {
+            url = requestedPath,
+            onDone = texture =>
+            {
+                if (IsModelStillValid(viewHolder.itemIndex, itemIndexAtRequest, requestedPath))
+                {
+                    viewHolder.infPicProgressBar.fillAmount = 0f;
+
+                    /*
+                    if(viewHolder.infPicture.texture)
+                    {
+                        var as2D = viewHolder.infPicture.texture as Texture2D;
+                        if(as2D)
+                        {
+                            texture.LoadTextureInto(as2D);
+                            return;
+                        }
+                        MonoBehaviour.Destroy(viewHolder.infPicture.texture);
+                    }*/
+                    viewHolder.infPicture.texture = texture.CreateTextureFromReceivedData();
+                }
+            },
+            onProgress = progress =>
+            {
+                if (IsModelStillValid(viewHolder.itemIndex, itemIndexAtRequest, requestedPath))
+                {
+                    viewHolder.infPicProgressBar.fillAmount = 1f - progress;
+                }
+            },
+            onError = () =>
+            {
+                if (IsModelStillValid(viewHolder.itemIndex, itemIndexAtRequest, requestedPath))
+                {
+                    Debug.Log("Cannot download image");
+                }
+            }
+        };
+
+        SimpleImageDownloader.Instance.Enqueue(request);
+
+        /*
 		SimpleImageDownloader.Instance.Download (
 			requestedPath,
 			texture => {
@@ -50,10 +93,10 @@ public class CreatorScrollRectItemsAdapter : GridAdapter<CreatorDetailParams, Cr
 				}
 			}
 		);
-
-		// Setup the button click handlers
-		// Remove all handlers before adding them again
-		viewHolder.btnInfluencer.onClick.RemoveAllListeners();
+        */
+        // Setup the button click handlers
+        // Remove all handlers before adding them again
+        viewHolder.btnInfluencer.onClick.RemoveAllListeners();
 		viewHolder.btnInfluencer.onClick.AddListener (delegate {
 			ExecuteEvents.Execute (viewHolder.btnInfluencer.gameObject, new PointerEventData (EventSystem.current), ExecuteEvents.pointerExitHandler);
 

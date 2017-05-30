@@ -10,29 +10,18 @@ using frame8.ScrollRectItemsAdapter.Util;
 
 namespace frame8.ScrollRectItemsAdapter.GridExample
 {
+    /// <summary>
+    /// Implementation demonstrating the usage of a <see cref="GridAdapter{TParams, TCellVH}"/> for a simple gallery of remote images downloaded with a <see cref="SimpleImageDownloader"/>
+    /// </summary>
     public class GridExample : MonoBehaviour
     {
-        public GridParams gridParams; // configuration visible in the inspector
-        public Text countText; // holds the number of items which will be fetched from server
+        /// <summary>Configuration visible in the inspector</summary>
+        public GridParams gridParams;
 
-        readonly string[] IMAGE_URLS = new string[]
-        {
-            "https://68.media.tumblr.com/avatar_a6abe54fa29b_128.png",
-            "https://a.wattpad.com/useravatar/YasYeas.128.870434.jpg",
-            "https://www.lebanoninapicture.com/Prv/Images/Pages/Page_92120/meditation-nature-peace-lebanesemountains-livel-2-22-2017-12-19-17-am-t.jpg",
-            "https://www.lebanoninapicture.com/Prv/Images/Pages/Page_96905/purple-flower-green-plants-nature-naturecolors--2-28-2017-4-06-40-pm-t.jpg",
-            "https://68.media.tumblr.com/avatar_4b20b991f1fa_128.png",
-            "https://s-media-cache-ak0.pinimg.com/236x/cd/de/a2/cddea289ff95c409ce414983f02847b6.jpg",
-            "https://images-na.ssl-images-amazon.com/images/I/71L8cVOFuAL._CR204,0,1224,1224_UX128.jpg",
-            "https://d2ujflorbtfzji.cloudfront.net/key-image/691c98df-8e89-491f-b7ac-c7ff5a0c441e.png",
-            "https://images-na.ssl-images-amazon.com/images/I/71QdMdCSz5L._CR204,0,1224,1224_UX128.jpg",
-            "https://a.wattpad.com/useravatar/CorpseDragneel0.128.192903.jpg",
-            "http://wiki.teamliquid.net/commons/images/1/18/Crystal_maiden_freezing_field.png",
-            "http://icons.iconarchive.com/icons/emoopo/darktheme-folder/128/Folder-Nature-Leave-icon.png",
-            "http://icons.iconarchive.com/icons/majid-ksa/nature-folder/128/flower-folder-icon.png"
-        };
+        /// <summary>Holds the number of items which will be contained in the ScrollView</summary>
+        public Text countText;
 
-        // Instance of your ScrollRectItemsAdapter8 implementation
+        // Instance of the GridAdapter implementation
         MyGridAdapter _GridAdapter;
 
 
@@ -61,10 +50,12 @@ namespace frame8.ScrollRectItemsAdapter.GridExample
             yield return null;
 
             _GridAdapter.Init(gridParams);
+
+            // Initially set the number of items to the number in the input field
+            UpdateItems();
         }
 
-        // Callback from UI Button
-        // Mocking a basic server communication where you request x items and you receive them
+        /// <summary>Callback from UI Button. Parses the text in <see cref="countText"/> as an int and sets it as the new item count, refreshing all the views</summary>
         public void UpdateItems()
         {
             int newCount;
@@ -76,7 +67,7 @@ namespace frame8.ScrollRectItemsAdapter.GridExample
             {
                 models[i] = new BasicModel();
                 models[i].title = "Item " + i;
-                models[i].imageURL = IMAGE_URLS[UnityEngine.Random.Range(0, IMAGE_URLS.Length)];
+                models[i].imageURL = C.GetRandomSmallImageURL();
             }
             _GridAdapter.ChangeModels(models);
         }
@@ -85,7 +76,7 @@ namespace frame8.ScrollRectItemsAdapter.GridExample
         public void ScrollToItemWithIndex10()
         {
             if (_GridAdapter != null && _GridAdapter.CellCount > 10)
-                _GridAdapter.SmoothScrollTo(gridParams.GetGroupIndex(10), 1f, null);
+                _GridAdapter.SmoothScrollTo(gridParams.GetGroupIndex(10), 1f);
         }
 
         // This is your model
@@ -95,8 +86,10 @@ namespace frame8.ScrollRectItemsAdapter.GridExample
             public string imageURL;
         }
 
-
-        public class MyCellViewHolder : CellViewHolder
+        /// <summary>
+        /// All view holder used with GridAdapter should inherit from <see cref="CellViewsHolder"/>
+        /// </summary>
+        public class MyCellViewsHolder : CellViewsHolder
         {
             public RawImage icon; // using a raw image because it works with less code when we already have a Texture2D (downloaded from www with SimpleImageDownloader)
             public Image loadingProgress; 
@@ -117,7 +110,7 @@ namespace frame8.ScrollRectItemsAdapter.GridExample
 
 
         #region ScrollRectItemsAdapter8 code
-        public class MyGridAdapter : GridAdapter<GridParams, MyCellViewHolder>
+        public class MyGridAdapter : GridAdapter<GridParams, MyCellViewsHolder>
         {
             public int CellCount { get { return _Data.Count; } }
 
@@ -125,8 +118,8 @@ namespace frame8.ScrollRectItemsAdapter.GridExample
 
 
             /// <summary> Called when a cell becomes visible </summary>
-            /// <param name="viewHolder"> use viewHolder.itemIndex to find your corresponding model and feed data into views and </param>
-            protected override void UpdateCellViewHolder(MyCellViewHolder viewHolder)
+            /// <param name="viewHolder"> use viewHolder.itemIndex to find your corresponding model and feed data into its views</param>
+            protected override void UpdateCellViewsHolder(MyCellViewsHolder viewHolder)
             {
                 var model = _Data[viewHolder.itemIndex];
 
@@ -135,29 +128,41 @@ namespace frame8.ScrollRectItemsAdapter.GridExample
                 int itemIdexAtRequest = viewHolder.itemIndex;
 
                 string requestedPath = model.imageURL;
-                SimpleImageDownloader.Instance.Download(
-                    requestedPath,
-                    //progress =>
-                    //{
-                    //    if (IsModelStillValid(viewHolder.itemIndex, itemIdexAtRequest, requestedPath))
-                    //        viewHolder.loadingProgress.fillAmount = 1f - progress;
-                    //},
-                    texture =>
+                var request = new SimpleImageDownloader.Request()
+                {
+                    url = requestedPath,
+                    onDone = result =>
                     {
                         if (IsModelStillValid(viewHolder.itemIndex, itemIdexAtRequest, requestedPath))
                         {
                             viewHolder.title.text = model.title;
                             viewHolder.icon.enabled = true;
-                            viewHolder.icon.texture = texture;
                             //viewHolder.loadingProgress.fillAmount = 0f;
+                            if (viewHolder.icon.texture)
+                            {
+                                var as2D = viewHolder.icon.texture as Texture2D;
+                                if (as2D)
+                                {
+                                    result.LoadTextureInto(as2D); // re-use Texture2D object
+
+                                    return;
+                                }
+
+                                Destroy(viewHolder.icon.texture); // texture type incompatible => destroy it
+                            }
+
+                            viewHolder.icon.texture = result.CreateTextureFromReceivedData();
                         }
                     },
-                    () =>
+                    onError = () =>
                     {
                         if (IsModelStillValid(viewHolder.itemIndex, itemIdexAtRequest, requestedPath))
                             viewHolder.title.text = "No connection";
                     }
-                );
+
+                };
+
+                SimpleImageDownloader.Instance.Enqueue(request);
             }
 
             // Common utility methods to manipulate the data list

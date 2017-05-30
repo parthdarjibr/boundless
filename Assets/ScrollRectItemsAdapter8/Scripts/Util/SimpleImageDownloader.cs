@@ -2,9 +2,14 @@
 using System.Collections;
 using UnityEngine.UI;
 using System;
+using System.Collections.Generic;
 
 namespace frame8.ScrollRectItemsAdapter.Util
 {
+    /// <summary>
+    /// <para>A utility singleton class for downloading images using a LIFO queue for the requests. <see cref="MaxConcurrentRequests"/> can be used to limit the number of concurrent requests. </para> 
+    /// <para>Default is <see cref="DEFAULT_MAX_CONCURRENT_REQUESTS"/>. Each request is executed immediately if there's room for it. When the queue is full, the downloder starts checking each second if a slot is freed, after which re-enters the loop.</para> 
+    /// </summary>
     public class SimpleImageDownloader : MonoBehaviour
     {
         public static SimpleImageDownloader Instance
@@ -21,37 +26,95 @@ namespace frame8.ScrollRectItemsAdapter.Util
         static SimpleImageDownloader _Instance;
 
 
-		public void Download(string path, Action<Texture2D> onDone, Action onError, Action<float> onProgress = null)
-        {
-            StartCoroutine(DownloadCoroutine(path, onProgress, onDone, onError));
-        }
+        public int MaxConcurrentRequests { get; set; }
 
-        IEnumerator DownloadCoroutine(string path, Action<float> onProgress, Action<Texture2D> onDone, Action onError)
-        {
-            var www = new WWW(path);
+        const int DEFAULT_MAX_CONCURRENT_REQUESTS = 20;
 
-            // yield return www;
-            while (!www.isDone)
+        List<Request> _QueuedRequests = new List<Request>();
+        List<Request> _ExecutingRequests = new List<Request>();
+        WaitForSeconds _Wait1Sec = new WaitForSeconds(1f);
+
+
+        IEnumerator Start()
+        {
+            if (MaxConcurrentRequests == 0)
+                MaxConcurrentRequests = DEFAULT_MAX_CONCURRENT_REQUESTS;
+
+            while (true)
             {
-                if (onProgress != null)
-                    onProgress(www.progress);
+                while (_ExecutingRequests.Count >= MaxConcurrentRequests)
+                {
+                    yield return _Wait1Sec;
+                }
+
+                int lastIndex = _QueuedRequests.Count - 1;
+                if (lastIndex >= 0)
+                {
+                    var lastRequest = _QueuedRequests[lastIndex];
+                    _QueuedRequests.RemoveAt(lastIndex);
+
+                    StartCoroutine(DownloadCoroutine(lastRequest));
+                }
 
                 yield return null;
             }
+        }
+
+        public void Enqueue(Request request)
+        { _QueuedRequests.Add(request); }
+
+        IEnumerator DownloadCoroutine(Request request)
+        {
+            _ExecutingRequests.Add(request);
+            var www = new WWW(request.url);
+
+            while (!www.isDone)
+            {
+                if (request.onProgress != null)
+                    request.onProgress(www.progress);
+                yield return null;
+            }
+            // yield return www;
 
             if (string.IsNullOrEmpty(www.error))
             {
-                if (onProgress != null)
-                    onProgress(1f);
-
-                if (onDone != null)
-                    onDone(www.texture);
+                if (request.onDone != null)
+                {
+                    var result = new Result(www);
+                    request.onDone(result);
+                }
             }
             else
             {
-                if (onError != null)
-                    onError();
+                if (request.onError != null)
+                    request.onError();
             }
+            www.Dispose();
+            _ExecutingRequests.Remove(request);
+        }
+
+        public class Request
+        {
+            public string url;
+            public Action<Result> onDone;
+            public Action<float> onProgress;
+            public Action onError;
+        }
+
+        public class Result
+        {
+            WWW _UsedWWW;
+
+
+            internal Result(WWW www)
+            { _UsedWWW = www; }
+
+
+            public Texture2D CreateTextureFromReceivedData()
+            { return _UsedWWW.texture; }
+
+            public void LoadTextureInto(Texture2D existingTexture)
+            { _UsedWWW.LoadImageIntoTexture(existingTexture); }
         }
     }
 }

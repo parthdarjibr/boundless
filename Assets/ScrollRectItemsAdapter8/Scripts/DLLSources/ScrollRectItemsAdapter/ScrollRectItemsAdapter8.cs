@@ -6,72 +6,113 @@ using UnityEngine.EventSystems;
 using System;
 using frame8.Logic.Core.MonoBehaviours;
 using frame8.Logic.Misc.Other.Extensions;
+using frame8.Logic.Misc.Visual.UI.MonoBehaviours;
 
-// NOTE: the vertical/horizontal LayoutGroup on content panel will be disabled
 namespace frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter
 {
+    /// <summary>
+    /// <para>Sometimes abbreviated SRIA</para>
+    /// <para>Base abstract class that you need to extend in order to provide an implementation for GetItem[Height/Width](int) and UpdateViewsHolder(TItemViewsHolder).
+    /// You must first extend BaseItemViewsHolder, so you can provide it as the generic parameter TItemViewsHolder when implementing ScrollRectItemsAdapter8.
+    /// Extending BaseParams is optional.Based on your needs.Provide it as generic parameter TParams when implementing ScrollRectItemsAdapter8</para>
+    /// <para>HOW IT WORKS (it's recommended to manually go through example code in order to fully understand the mechanism):</para>
+    /// <para>1. create your own implementation of BaseItemViewsHolder, let's name it MyItemViewsHolder</para>
+    /// <para>2. create your own implementation of BaseParams (if needed), let's name it MyParams</para>
+    /// <para>3. create your own implementation of ScrollRectItemsAdapter8&lt;MyParams, MyItemViewsHolder&gt;, let's name it MyScrollRectItemsAdapter</para>
+    /// <para>4. instantiate MyScrollRectItemsAdapter</para>
+    /// <para>5. call MyScrollRectItemsAdapter.ChangeItemCountTo(int) once (and any time your dataset is changed) and the following things will happen:</para>
+    /// <para>    5.1. if the scroll rect has vertical scrolling, MyScrollRectItemsAdapter.GetItemHeight(int) will be called &lt;count&gt; times (with index going from 0 to &lt;count-1&gt;)</para>
+    /// <para>       else if the scroll rect has horizontal scrolling, MyScrollRectItemsAdapter.GetItemWidth(int) will ...[idem above]...</para>
+    /// <para>    5.2. CreateViewsHolder(int) will be called for each view that needs created. Once a view is created, it'll be re-used when it goes off-viewport </para>
+    /// <para>          - newOrRecycledViewsHolder.root will be null, so you need to instantiate your prefab (or whatever), assign it and call newOrRecycledViewsHolder.CollectViews(). Alternatively, you can call its <see cref="AbstractViewHolder.Init(GameObject, int, bool, bool)"/> method, which can do a lot of things for you, mainly instantiate the prefab and (if you want) call CollectViews()</para>
+    /// <para>          - after creation, only MyScrollRectItemsAdapter.UpdateViewsHolder() will be called for it when its represented item changes and becomes visible</para>
+    /// <para>          - this method is also called when the viewport's size grows, thus needing more items to be visible at once</para>
+    /// <para>    5.3. MyScrollRectItemsAdapter.UpdateViewsHolder(MyItemViewsHolder) will be called when an item is to be displayed or simply needs updating:</para>
+    /// <para>        - use newOrRecycledViewsHolder.itemIndex to get the item index, so you can retrieve its associated model from your data set (most common practice is to store the data list in your Params implementation)</para>
+    /// <para>        - newOrRecycledViewsHolder.root is not null here (given the view holder was properly created in CreateViewsHolder(..)). It's assigned a valid object whose UI elements only need their values changed (common practice is to implement helper methods in the view holder that take the model and update the views itself)</para>
+    /// <para></para>
+    /// <para> *NOTE: the vertical/horizontal LayoutGroup on content panel will be disabled, if any (you're not allowed to use it, since all the layouting is delegated to this adapter)</para>
+    /// </summary>
+    /// <typeparam name="TParams">The params type to use (the ones passed in <see cref="Init(TParams)"/>)</typeparam>
+    /// <typeparam name="TItemViewsHolder"></typeparam>
     public abstract class ScrollRectItemsAdapter8<TParams, TItemViewsHolder> : OnScreenSizeChangedEventDispatcher.IOnScreenSizeChangedListener
     where TParams : BaseParams
-    where TItemViewsHolder : BaseItemViewsHolder, new()
+    where TItemViewsHolder : BaseItemViewsHolder//, new()
     {
+        /// <summary> Fired when the item count changes or the views are refreshed</summary>
+        public event Action<int, int> ItemsRefreshed;
+
+        /// <summary>The parameters passed in <see cref="Init(TParams)"/></summary>
         public TParams Parameters { get { return _Params; } }
-        public List<TItemViewsHolder> VisibleItemsCopy { get { return new List<TItemViewsHolder>(_VisibleItems); } }
+
+        //public List<TItemViewsHolder> VisibleItemsCopy { get { return new List<TItemViewsHolder>(_VisibleItems); } }
+
+        /// <summary> The number of currently visible items (view holders). Can be used to iterate through all of them using GetItemViewsHolder(int viewHolderIndex) </summary>
+        public int VisibleItemsCount { get { return _VisibleItemsCount; } }
+
 
         protected TParams _Params;
         protected List<TItemViewsHolder> _VisibleItems;
         protected int _VisibleItemsCount;
 
-        InternalParams _InternalParams;
+        InternalState _InternalState;
         MonoBehaviourHelper8 _MonoBehaviourHelper;
+        Coroutine _SmoothScrollCoroutine;
 
 
         protected ScrollRectItemsAdapter8() { }
 
-
+        /// <summary>Initialize the adapter, passing your custom params. Will call Params.InitIfNeeded(), will initialize the internal state and will change the item count to 0</summary>
+        /// <param name="parms">Your BaseParams implementation</param>
         public void Init(TParams parms)
         {
             if (_Params != null)
-            {
-                if (_Params.scrollRect)
-                {
-                    // Just to be sure we don't add the listener twice, if initializing with the same scrollview
-                    _Params.scrollRect.onValueChanged.RemoveListener(OnScrollPositionChanged);
-                }
-
-                if (_MonoBehaviourHelper != null)
-                    _MonoBehaviourHelper.Dispose();
-            }
-
+                Dispose();
 
             _Params = parms;
             _Params.InitIfNeeded();
 
-            _InternalParams = InternalParams.CreateFromSourceParamsOrThrow(_Params, this);
-            // Commented: CreateFromSourceParamsOrThrow() will throw an exception if something's not right, so no need to handle it here
-            //if (_InternalParams == null)
-            //{
-            //    // TODO (in case of error maybe do something else than only returning null)
-            //    return;
-            //}
-
+            _InternalState = InternalState.CreateFromSourceParamsOrThrow(_Params, this);
             _VisibleItems = new List<TItemViewsHolder>();
 
             // Need to initialize before ChangeCountInternal, as _MonoBehaviourHelper is referenced there
-            _MonoBehaviourHelper = MonoBehaviourHelper8.CreateInstance(MyUpdate, _Params.scrollRect.transform, "OptimizerHelperMonoBehaviour");
+            _MonoBehaviourHelper = MonoBehaviourHelper8.CreateInstance(MyUpdate, _Params.scrollRect.transform, "SRIA-Helper");
             _MonoBehaviourHelper.gameObject.AddComponent<OnScreenSizeChangedEventDispatcher>().RegisterListenerManually(this);
 
             ChangeItemCountInternal(0, false);
             _Params.ScrollToStart();
-            _InternalParams.ResetLastProcessedNormalizedScrollPositionToStart();
+            _InternalState.ResetLastProcessedNormalizedScrollPositionToStart();
             _Params.scrollRect.onValueChanged.AddListener(OnScrollPositionChanged);
         }
 
+        /// <summary>Same as ChangeItemCountTo(0)</summary>
+        public virtual void Refresh() { ChangeItemCountTo(_InternalState.itemsCount); }
+
+        /// <summary>Same as ChangeItemCountTo(0, false)</summary>
         public virtual void ChangeItemCountTo(int itemsCount) { ChangeItemCountTo(itemsCount, false); }
 
+        /// <summary>Self-explanatory. Will remove all the current items and create new view holders for the new ones</summary>
         public void ChangeItemCountTo(int itemsCount, bool contentPanelEndEdgeStationary) { ChangeItemCountInternal(itemsCount, contentPanelEndEdgeStationary); }
 
-        public int GetItemCount() { return _InternalParams.itemsCount; }
+        /// <summary>Always returns the last value that was passed to ChangeItemCountTo(...)</summary>
+        public int GetItemCount() { return _InternalState.itemsCount; }
 
+        /// <summary>
+        /// <para>Get the viewHolder with a specific index in the "visible items" array.</para>
+        /// <para>Example: if you pass 0, the first visible ViewHolder will be returned (if there's any)</para>
+        /// <para>Not to be mistaken to the other method 'GetItemViewsHolderIfVisible(int withItemIndex)', which uses the itemIndex, i.e. the index in the list of data models.</para>
+        /// <para>Returns null if the supplied parameter is >= VisibleItemsCount</para>
+        /// </summary>
+        /// <param name="viewHolderIndex"> the index of the ViewsHolder in the visible items array</param>
+        public TItemViewsHolder GetItemViewsHolder(int viewHolderIndex)
+        {
+            if (viewHolderIndex >= _VisibleItemsCount)
+                return null;
+            return _VisibleItems[viewHolderIndex];
+        }
+
+        /// <summary>Gets the view holder representing the <paramref name="withItemIndex"/>'th item in the list of data models, if it's visible.</summary>
+        /// <returns>null, if not visible</returns>
         public TItemViewsHolder GetItemViewsHolderIfVisible(int withItemIndex)
         {
             int curVisibleIndex = 0;
@@ -91,6 +132,8 @@ namespace frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter
             return null;
         }
 
+        /// <summary>Same as GetItemViewsHolderIfVisible(int withItemIndex), but searches by the root RectTransform reference, rather than the item index</summary>
+        /// <param name="withRoot">RectTransform reference to the searched viw holder's root</param>
         public TItemViewsHolder GetItemViewsHolderIfVisible(RectTransform withRoot)
         {
             TItemViewsHolder curItemViewsHolder;
@@ -105,38 +148,48 @@ namespace frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter
         }
 
         #region ScrollTo helper methods
-        /// <summary>
-        /// Aligns the ScrollRect's content so that the item with <paramref name="itemIndex"/> will be at the top
+        /// <summary> 
+        /// <para>Aligns the ScrollRect's content so that the item with <paramref name="itemIndex"/> will be at the top.</para>
+        /// <para>But the two optional parameters can be used for more fine-tuning. One common use-case is to set them both at 0.5 so the item will be end up exactly in the middle of the viewport</para>
         /// </summary>
-        /// <param name="itemIndex"></param>
-        public void ScrollTo(int itemIndex)
+        /// <param name="itemIndex">The item with this index will be considered</param>
+        /// <param name="normalizedOffsetFromViewportStart">0f=no effect; 0.5f= the item's start edge (top or left) will be at the viewport's center; 1f=the item's start edge will be exactly at the viewport's end (thus, the item will be completely invisible)</param>
+        /// <param name="normalizedPositionOfItemPivotToUse">For even more fine-adjustment, you can also specify what point on the item will be used to bring it to <paramref name="normalizedOffsetFromViewportStart"/>. The same principle applies as to the <paramref name="normalizedOffsetFromViewportStart"/> parameter: 0f=start(top/left), 1f=end(bottom/right)</param>
+        public void ScrollTo(int itemIndex, float normalizedOffsetFromViewportStart = 0f, float normalizedPositionOfItemPivotToUse = 0f)
         {
-            float minContentOffsetFromVPAllowed = _InternalParams.viewportSize - _InternalParams.contentPanelSize;
+            float minContentOffsetFromVPAllowed = _InternalState.viewportSize - _InternalState.contentPanelSize;
             if (minContentOffsetFromVPAllowed >= 0f)
                 return; // can't, because content is not bigger than viewport
-            SetContentStartOffsetFromViewportStart(Mathf.Max(minContentOffsetFromVPAllowed , - GetItemOffsetFromParentStart(itemIndex)));
+
+            SetContentStartOffsetFromViewportStart(
+                ClampContentStartOffsetFromViewportStart(minContentOffsetFromVPAllowed, itemIndex, normalizedOffsetFromViewportStart, normalizedPositionOfItemPivotToUse)
+            );
         }
 
-        /// <summary>
-        /// Utility to smooth scroll.
-        /// However, it's recommended that you use the SmoothScrollProgressCoroutine() call with your own MonoBehaviour.StartCoroutine
-        /// </summary>
-        /// <param name="itemIndex"></param>
-        /// <param name="onProgress">gets the progress and returns if the scrolling should continue</param>
-        public void SmoothScrollTo(int itemIndex, float duration, Func<float, bool> onProgress=null)
+        /// <summary> Utility to smooth scroll. Identical to ScrollTo(..) in functionality, but the scroll is animated (scroll is done gradually, throughout multiple frames) </summary>
+        /// <param name="onProgress">gets the progress (0f..1f) and returns if the scrolling should continue</param>
+        /// <returns>if no smooth scroll animation was already playing. if it was, then no new animation will begin</returns>
+        public bool SmoothScrollTo(int itemIndex, float duration, float normalizedOffsetFromViewportStart = 0f, float normalizedPositionOfItemPivotToUse = 0f, Func<float, bool> onProgress=null)
         {
-            _MonoBehaviourHelper.StartCoroutine(SmoothScrollProgressCoroutine(itemIndex, duration, onProgress));
+            if (_SmoothScrollCoroutine != null)
+                return false;
+
+            _SmoothScrollCoroutine = _MonoBehaviourHelper.StartCoroutine(SmoothScrollProgressCoroutine(itemIndex, duration, normalizedOffsetFromViewportStart, normalizedPositionOfItemPivotToUse, onProgress));
+
+            return true;
         }
 
-        public IEnumerator SmoothScrollProgressCoroutine(int itemIndex, float duration, Func<float, bool> onProgress=null)
+        IEnumerator SmoothScrollProgressCoroutine(int itemIndex, float duration, float normalizedOffsetFromViewportStart = 0f, float normalizedPositionOfItemPivotToUse = 0f, Func<float, bool> onProgress=null)
         {
-            float minContentOffsetFromVPAllowed = _InternalParams.viewportSize - _InternalParams.contentPanelSize;
+            float minContentOffsetFromVPAllowed = _InternalState.viewportSize - _InternalState.contentPanelSize;
             // Positive values indicate CT is smaller than VP, so no scrolling can be done
             if (minContentOffsetFromVPAllowed >= 0f)
             {
                 // This is dependent on the case. sometimes is needed, sometimes not
                 //if (duration > 0f)
                 //    yield return new WaitForSeconds(duration);
+
+                _SmoothScrollCoroutine = null;
 
                 if (onProgress != null)
                     onProgress(1f);
@@ -145,8 +198,8 @@ namespace frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter
 
             Canvas.ForceUpdateCanvases();
             _Params.scrollRect.StopMovement();
-            float initialInsetFromParent = _Params.content.GetInsetFromParentEdge(_Params.viewport as RectTransform, _InternalParams.startEdge);
-            float targetInsetFromParent = Math.Max(minContentOffsetFromVPAllowed, -GetItemOffsetFromParentStart(itemIndex));
+            float initialInsetFromParent = _Params.content.GetInsetFromParentEdge(_Params.viewport as RectTransform, _InternalState.startEdge);
+            float targetInsetFromParent = ClampContentStartOffsetFromViewportStart(minContentOffsetFromVPAllowed, itemIndex, normalizedOffsetFromViewportStart, normalizedPositionOfItemPivotToUse);
             float startTime = Time.time;
             float elapsedTime;
             float progress;
@@ -173,74 +226,27 @@ namespace frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter
 
             // Assures the end result is the expected one
             if (notCanceled)
-                ScrollTo(itemIndex);
+                ScrollTo(itemIndex, normalizedOffsetFromViewportStart, normalizedPositionOfItemPivotToUse);
+
+            _SmoothScrollCoroutine = null;
+            yield break;
         }
 
-        /// <summary>
-        /// The old way of doing it; the name says it all
-        /// </summary>
-        /// <param name="itemIndex"></param>
-        /// <param name="duration"></param>
-        /// <param name="onProgress"></param>
-        /// <returns></returns>
-        public IEnumerator SmoothScrollProgressCoroutine_FasterButSometimesChoppy(int itemIndex, float duration, Func<float, bool> onProgress = null)
-        {
-            float normOffset = GetItemNormalizedOffsetFromParentStart_NotAccurate(itemIndex);
-            float initialVal = _Params.scrollRect.vertical ? _Params.scrollRect.verticalNormalizedPosition : _Params.scrollRect.horizontalNormalizedPosition;
-            float targetVal = normOffset;
-            float startTime = Time.time;
-            float elapsedTime;
-            float progress;
-            float value;
-            var endOfFrame = new WaitForEndOfFrame();
-            do
-            {
-                yield return null;
-                yield return endOfFrame;
+        /// <summary><paramref name="offset"/> should be a valid value. See how it's clamped in <see cref="ScrollTo(int, float, float)"/></summary>
+        public void SetContentStartOffsetFromViewportStart(float offset) { SetContentEdgeOffsetFromViewportEdge(_InternalState.startEdge, offset); }
 
-                elapsedTime = Time.time - startTime;
-                if (elapsedTime >= duration)
-                    progress = 1f;
-                else
-                    // Normal in; sin slow out
-                    progress = Mathf.Sin((elapsedTime / duration) * Mathf.PI / 2); ;
-
-                Canvas.ForceUpdateCanvases();
-                value = Mathf.Lerp(initialVal, targetVal, progress);
-                if (_Params.scrollRect.vertical)
-                    _Params.scrollRect.verticalNormalizedPosition = value;
-                else
-                    _Params.scrollRect.horizontalNormalizedPosition = value;
-
-                //ScrollToInsetFromParent(Mathf.Lerp(initialInsetFromParent, targetInsetFromParent, progress));
-            }
-            while ((onProgress == null || onProgress(progress)) && progress < 1f);
-
-            // Temporary fix that assures the end result is the expected one
-            ScrollTo(itemIndex);
-        }
-
-        /// <summary>
-        /// <paramref name="offset"/> should be a valid value. See how it's clamped in  <seealso cref="ScrollTo(int)"/>
-        /// </summary>
-        /// <param name="offset"></param>
-        public void SetContentStartOffsetFromViewportStart(float offset) { SetContentEdgeOffsetFromViewportEdge(_InternalParams.startEdge, offset); }
-
-        /// <summary>
-        /// <paramref name="offset"/> should be a valid value. See how it's clamped in <seealso cref="ScrollTo(int)"/>
-        /// </summary>
-        /// <param name="offset"></param>
-        public void SetContentEndOffsetFromViewportEnd(float offset) { SetContentEdgeOffsetFromViewportEdge(_InternalParams.endEdge, offset); }
+        /// <summary><paramref name="offset"/> should be a valid value. See how it's clamped in <see cref="ScrollTo(int, float, float)"/></summary>
+        public void SetContentEndOffsetFromViewportEnd(float offset) { SetContentEdgeOffsetFromViewportEdge(_InternalState.endEdge, offset); }
         #endregion
 
         /// <summary>
-        /// <para>Will call GetItem[Height|Width](itemIndex) for each other item to have an updated sizes cache</para>
-        /// <para>After, will change the item's size with <newSize> and will shift down/right the next ones, if any</para>
+        /// <para>Will call GetItem[Height|Width](int) for each other item to have an updated sizes cache</para>
+        /// <para>After, will change the size of the item's RectTransform to <paramref name="requestedSize"/> and will shift down/right the next ones, if any</para>
         /// </summary>
-        /// <param name="itemIndex"></param>
-        /// <param name="requestedSize"></param>
+        /// <param name="withViewHolder">the view holder. A common usage for an "expand on click" behavior is to have a button on a view whose onClick fires a method in the adapter where it retrieves the view holder via <see cref="GetItemViewsHolderIfVisible(RectTransform)"/> </param>
+        /// <param name="requestedSize">the height or width (depending on scrollview's orientation)</param>
         /// <param name="itemEndEdgeStationary">if to grow to the top/left (less common) instead of down/right (more common)</param>
-        /// <returns>the resolved size. This can be slightly different than <requestedSize> slightly if the number of items is huge (>100k))</returns>
+        /// <returns>the resolved size. This can be slightly different than <paramref name="requestedSize"/> if the number of items is huge (>100k))</returns>
         public float RequestChangeItemSizeAndUpdateLayout(TItemViewsHolder withViewHolder, float requestedSize, bool itemEndEdgeStationary=false)
         {
             _Params.scrollRect.StopMovement(); // we don't want a ComputeVisibility() during changing an item's size, so we cut off any inertia 
@@ -248,8 +254,8 @@ namespace frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter
             int v1_h0 = _Params.scrollRect.vertical ? 1 : 0;
             int vMinus1_h1 = -v1_h0 * 2 + 1;
 
-            float oldSize = _InternalParams.itemsSizes[withViewHolder.itemIndexInView];
-            float resolvedSize = _InternalParams.ChangeItemSizeAndUpdateContentSizeAccordingly(withViewHolder, requestedSize, itemEndEdgeStationary);
+            float oldSize = _InternalState.itemsSizes[withViewHolder.itemIndexInView];
+            float resolvedSize = _InternalState.ChangeItemSizeAndUpdateContentSizeAccordingly(withViewHolder, requestedSize, itemEndEdgeStationary);
             float sizeChange = resolvedSize - oldSize;
 
             // Move all the next visible elements down / to the right
@@ -272,77 +278,153 @@ namespace frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter
         }
 
         /// <summary>
-        /// <para>returns the distance of the iten's left (if scroll view is Horizontal) or top (if scroll view is Vertical) edge </para>
+        /// <para>returns the distance of the item's left (if scroll view is Horizontal) or top (if scroll view is Vertical) edge </para>
         /// <para>from the parent's left (respectively, top) edge</para>
         /// </summary>
-        /// <param name="itemIndex"></param>
-        /// <returns></returns>
         public float GetItemOffsetFromParentStart(int itemIndex)
-        {
-            return _InternalParams.GetItemOffsetFromParentStartUsingItemIndexInView(_InternalParams.GetItemViewIndexFromRealIndex(itemIndex));
-        }
-
-        // Commented: not reliable
-        public float GetItemNormalizedOffsetFromParentStart_NotAccurate(int itemIndex)
-        {
-            return 1 - _InternalParams.GetItemOffsetFromParentStartUsingItemIndexInView(_InternalParams.GetItemViewIndexFromRealIndex(itemIndex)) / _InternalParams.contentPanelSize;
-        }
-
+        { return _InternalState.GetItemOffsetFromParentStartUsingItemIndexInView(_InternalState.GetItemViewIndexFromRealIndex(itemIndex)); }
 
         /// <summary>
         /// <para>This is called automatically when screen size (or the orientation) changes</para>
         /// <para>But if you somehow resize the scrollview manually, you also must call this</para>
         /// </summary>
-        public void NotifyScrollViewSizeChanged()
-        {
-            _InternalParams.CacheScrollViewInfo(); // update vp size etc.
-            ChangeItemCountInternal(_InternalParams.itemsCount, false);
-            _InternalParams.maxVisibleItemsSeenSinceLastScrollViewSizeChange = 0;
+        public virtual void NotifyScrollViewSizeChanged()
+		{
+			_InternalState.layoutRebuildPendingDueToScreenSizeChangeEvent = true;
+			ChangeItemCountInternal(_InternalState.itemsCount, false);
         }
 
+        /// <summary>Call this when the adapter is no longer needed</summary>
         public virtual void Dispose()
         {
+            if (_Params != null && _Params.scrollRect)
+                _Params.scrollRect.onValueChanged.RemoveListener(OnScrollPositionChanged);
+
+            if (_SmoothScrollCoroutine != null)
+            {
+                _SmoothScrollCoroutine = null;
+            }
+
             if (_MonoBehaviourHelper)
+            {
                 _MonoBehaviourHelper.Dispose();
+                _MonoBehaviourHelper = null;
+            }
+
+            ClearCachedRecyclableItems();
+
+            ClearVisibleItems();
+            _VisibleItems = null;
+
+            _Params = null;
+            _InternalState = null;
+
+            if (ItemsRefreshed != null)
+                ItemsRefreshed = null;
         }
 
 
-        /// <summary>
-        /// Only called for vertical ScrollRects
-        /// </summary>
+        /// <summary> Only called for vertical ScrollRects </summary>
         /// <param name="index">the element's index in your dataset</param>
         /// <returns>The height to be allocated for its visual representation in the view</returns>
         protected abstract float GetItemHeight(int index);
 
-        /// <summary>
-        /// Only called for horizontal ScrollRects
-        /// </summary>
+        /// <summary> Only called for horizontal ScrollRects </summary>
         /// <param name="index">the element's index in your dataset</param>
         /// <returns>The width to be allocated for its visual representation in the view</returns>
         protected abstract float GetItemWidth(int index);
 
-        // newOrRecycled.root will be null for new holders
-        protected abstract void InitOrUpdateItemViewHolder(TItemViewsHolder newOrRecycled);
+        /// <summary> 
+        /// <para>Called when there are no recyclable views for itemIndex. Provide a new viewholder instance for itemIndex. This is the place where you must initialize the viewholder </para>
+        /// <para>via TItemViewsHolder.Init(..) shortcut or manually set its itemIndex, instantiate the prefab and call CollectViews()</para>
+        /// </summary>
+        /// <param name="itemIndex">the index of the model that'll be presented by this view holder</param>
+        protected abstract TItemViewsHolder CreateViewsHolder(int itemIndex);
 
         /// <summary>
-        /// Self-explanatory. The default implementation returns true each time
+        /// <para>Here the data in your model should be bound to the views. Use newOrRecycled.itemIndex to retrieve its associated model</para>
+        /// <para>Note that view holders are re-used (this is the whole purpose of this adapter), so a view holder's views will contain data from its previously associated model and if, </para>
+        /// <para>for example, you're downloading an image to be set as an icon, it makes sense to first clear the previous one (and probably temporarily replace it with a generic "Loading" image)</para>
         /// </summary>
-        /// <param name="fromRecycleBin"></param>
-        /// <param name="indexOfItemThatWillBecomeVisible"></param>
-        /// <returns></returns>
-        protected virtual bool IsRecyclable(TItemViewsHolder potentiallyRecyclable, int indexOfItemThatWillBecomeVisible, float heightOfItemThatWillBecomeVisible)
-        {  
-           //// Here's what we use <cachedSize> for; since those items are outside the view and the list may have changed, the <itemIndex> property may have become obsolete
-           //if (_Params.onlyRecycleCandidatesWithCompatibleSizes && Mathf.Abs(potentiallyRecyclable.cachedSize - nlvSize) > .000001f )
-           //    return;
+        /// <param name="newOrRecycled"></param>
+        protected abstract void UpdateViewsHolder(TItemViewsHolder newOrRecycled);
 
-            return true;
+        /// <summary> Self-explanatory. The default implementation returns true each time</summary>
+        /// <param name="potentiallyRecyclable"></param>
+        /// <param name="indexOfItemThatWillBecomeVisible"></param>
+        /// <param name="heightOfItemThatWillBecomeVisible"></param>
+        /// <returns>If the provided view holder is compatible with the item with index <paramref name="indexOfItemThatWillBecomeVisible"/></returns>
+        protected virtual bool IsRecyclable(TItemViewsHolder potentiallyRecyclable, int indexOfItemThatWillBecomeVisible, float heightOfItemThatWillBecomeVisible)
+        { return true; }
+
+        /// <summary>Destroying any remaining game objects in the <see cref="InternalState.recyclableItems"/> list, clearing it and setting <see cref="InternalState.recyclableItemsCount"/> to 0</summary>
+        protected virtual void ClearCachedRecyclableItems()
+        {
+            if (_InternalState != null && _InternalState.recyclableItems != null)
+            {
+                foreach (var recyclable in _InternalState.recyclableItems)
+                {
+                    if (recyclable != null && recyclable.root != null)
+                        try { GameObject.Destroy(recyclable.root.gameObject); } catch (Exception e) { Debug.LogException(e); }
+                }
+                _InternalState.recyclableItems.Clear();
+                _InternalState.recyclableItemsCount = 0;
+            }
+        }
+
+        /// <summary>Destroying any remaining game objects in the <see cref="_VisibleItems"/> list, clearing it and setting <see cref="_VisibleItemsCount"/> to 0</summary>
+        protected virtual void ClearVisibleItems()
+        {
+            if (_VisibleItems != null)
+            {
+                foreach (var item in _VisibleItems)
+                {
+                    if (item != null && item.root != null)
+                        try { GameObject.Destroy(item.root.gameObject); } catch (Exception e) { Debug.LogException(e); }
+                }
+                _VisibleItems.Clear();
+                _VisibleItemsCount = 0;
+            }
+        }
+
+		protected virtual void RebuildLayoutDueToScrollViewSizeChange()
+		{
+			MarkViewHoldersForRebuild(_VisibleItems);
+			MarkViewHoldersForRebuild(_InternalState.recyclableItems);
+
+			Canvas.ForceUpdateCanvases();
+
+			_InternalState.CacheScrollViewInfo(); // update vp size etc.
+			_InternalState.maxVisibleItemsSeenSinceLastScrollViewSizeChange = 0;
+		}
+
+		void MarkViewHoldersForRebuild(List<TItemViewsHolder> vhs)
+		{
+			if (vhs != null)
+				foreach (var v in vhs)
+					if (v != null && v.root != null)
+						v.MarkForRebuild();
+		}
+
+        /// <summary> It assumes that the content is bigger than the viewport </summary>
+        float ClampContentStartOffsetFromViewportStart(float minContentOffsetFromVPAllowed, int itemIndex, float normalizedOffsetFromStart, float normalizedPositionOfItemPivotToUse)
+        {
+            float maxContentOffsetFromVPAllowed = 0f;
+            int itemViewIdex = _InternalState.GetItemViewIndexFromRealIndex(itemIndex);
+            float itemSize = _InternalState.itemsSizes[itemViewIdex];
+            float offsetToAdd = _InternalState.viewportSize * normalizedOffsetFromStart - itemSize * normalizedPositionOfItemPivotToUse;
+
+            return  Mathf.Max(
+                        minContentOffsetFromVPAllowed,
+                        Math.Min(maxContentOffsetFromVPAllowed, -GetItemOffsetFromParentStart(itemIndex) + offsetToAdd)
+                    );
         }
 
         void ChangeItemCountInternal(int itemsCount, bool contentPanelEndEdgeStationary)
         {
+            int prevCount = _InternalState.itemsCount;
             _Params.scrollRect.StopMovement();
-            _InternalParams.OnItemsCountChanged(itemsCount, contentPanelEndEdgeStationary);
+            _InternalState.OnItemsCountChanged(itemsCount, contentPanelEndEdgeStationary);
 
             // Re-build the content: mark all currentViews as recyclable
             // _RecyclableItems must be zero;
@@ -351,68 +433,70 @@ namespace frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter
                 throw new UnityException("ChangeItemCountInternal: GetNumExcessObjects() > 0 when calling ChangeItemCountInternal(); this may be due ComputeVisibility not being finished executing yet");
             }
 
-            _InternalParams.recyclableItems.AddRange(_VisibleItems);
-            _InternalParams.recyclableItemsCount += _VisibleItemsCount;
+            _InternalState.recyclableItems.AddRange(_VisibleItems);
+            _InternalState.recyclableItemsCount += _VisibleItemsCount;
+
+            // If the itemsCount is 0, then it makes sense to destroy all the views, instead of marking them as recyclable. Maybe the ChangeItemCountTo(0) was called in order to clear the current contents
+            if (itemsCount == 0)
+                ClearCachedRecyclableItems();
 
             _VisibleItems.Clear();
             _VisibleItemsCount = 0;
 
-            _MonoBehaviourHelper.CallDelayedByFrames(
-                    () =>
-                    {
-                        // Only computing the visibility if it didn't already
-                        if (!_InternalParams.onScrollPositionChangedFiredAndVisibilityComputedForCurrentItems)
-                        {
-                            _Params.ClampScroll01();
+			_InternalState.updateRequestPending = true;
+			//_MonoBehaviourHelper.CallDelayedByFrames(
+   //                 () =>
+   //                 {
+   //                     // Only computing the visibility if it didn't already
+   //                     if (!_InternalState.onScrollPositionChangedFiredAndVisibilityComputedForCurrentItems)
+   //                     {
+   //                         _Params.ClampScroll01();
 
-                            // On some devices(i.e. some androids) this is not fired on initialization, so we're firing it here
-                            //OnScrollPositionChanged(_Params.scrollRect.normalizedPosition);
-                            _InternalParams.updateRequestPending = true;
-                        }
-                    },
-                    3
-                );
+   //                         // On some devices(i.e. some androids) this is not fired on initialization, so we're firing it here
+   //                         //OnScrollPositionChanged(_Params.scrollRect.normalizedPosition);
+   //                         _InternalState.updateRequestPending = true;
+   //                     }
+   //                 },
+   //                 3
+   //             );
+
+            if (ItemsRefreshed != null)
+                ItemsRefreshed(prevCount, itemsCount);
         }
 
-        // Called by MonobehaviourHelper.Update
+        /// <summary>Called by MonobehaviourHelper.Update</summary>
         void MyUpdate()
         {
-            if (_InternalParams.updateRequestPending) 
+            if (_InternalState.updateRequestPending) 
             {
                 // ON_SCROLL is the only case when we don't regularly update and are using only onScroll event for ComputeVisibility
-                _InternalParams.updateRequestPending = _Params.updateMode != BaseParams.UpdateMode.ON_SCROLL;
+                _InternalState.updateRequestPending = _Params.updateMode != BaseParams.UpdateMode.ON_SCROLL;
                 ComputeVisibilityForCurrentPosition();
             }
         }
 
+        /// <summary>Called by ScrollRect.onValueChanged event</summary>
         void OnScrollPositionChanged(Vector2 pos)
         {
-            //Debug.Log(pos.x + "; " + pos.y);
-            //float posXOrY;
-            //if (_Params.scrollRect.horizontal)
-            //{
-            //    posXOrY = pos.x;
-            //}
-            //else
-            //{
-            //    posXOrY = pos.y;
-            //}
-
-            //if (posXOrY < -.01f || posXOrY > 1.01f) // ignoring the elastic effect of the scrollview
-            //    return;
-
             if (_Params.updateMode != BaseParams.UpdateMode.MONOBEHAVIOUR_UPDATE)
                 ComputeVisibilityForCurrentPosition();
             if (_Params.updateMode != BaseParams.UpdateMode.ON_SCROLL)
-                _InternalParams.updateRequestPending = true;
+                _InternalState.updateRequestPending = true;
 
-            _InternalParams.onScrollPositionChangedFiredAndVisibilityComputedForCurrentItems = true;
+            _InternalState.onScrollPositionChangedFiredAndVisibilityComputedForCurrentItems = true;
         }
 
+        /// <summary>Called by <see cref="MyUpdate"/>, <see cref="OnScrollPositionChanged(Vector2)"/> or both</summary>
         void ComputeVisibilityForCurrentPosition()
         {
+			if (_InternalState.layoutRebuildPendingDueToScreenSizeChangeEvent)
+			{
+				RebuildLayoutDueToScrollViewSizeChange();
+				_InternalState.layoutRebuildPendingDueToScreenSizeChangeEvent = false;
+			}
+
             float curPos = _Params.GetAbstractNormalizedScrollPosition();
-            float delta = curPos - _InternalParams.lastProcessedAbstractNormalizedScrollPosition;
+            float delta = curPos - _InternalState.lastProcessedAbstractNormalizedScrollPosition;
 
             if (_Params.loopItems)
                 LoopIfNeeded(delta, curPos);
@@ -422,9 +506,10 @@ namespace frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter
             // again GetAbstractNormalizedScrollPosition(), since it can change due to LoopIfNeeded() being called.
             // Only using curPos if looping is disabled
             //_InternalParams.lastProcessedAbstractNormalizedScrollPosition = curPos;
-            _InternalParams.lastProcessedAbstractNormalizedScrollPosition = _Params.loopItems ? _Params.GetAbstractNormalizedScrollPosition() : curPos;
+            _InternalState.lastProcessedAbstractNormalizedScrollPosition = _Params.loopItems ? _Params.GetAbstractNormalizedScrollPosition() : curPos;
         }
 
+        /// <summary>Looping behavior called in <see cref="ComputeVisibilityForCurrentPosition"/> when <see cref="BaseParams.loopItems"/> is true</summary>
         void LoopIfNeeded(float delta, float curPos)
         {
             //if (curPos < 0f || curPos > 1f)
@@ -461,7 +546,7 @@ namespace frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter
                     as Dictionary<int, PointerEventData>;
 
                 // Modify the original pointer to look like it was pressed at the current position and it didn't move
-                PointerEventData originalPED = null;
+                //PointerEventData originalPED = null;
                 foreach (var pointer in pointerEvents.Values)
                 {
                     if (pointer.pointerDrag == _Params.scrollRect.gameObject)
@@ -473,7 +558,7 @@ namespace frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter
                         pointer.scrollDelta = Vector2.zero;
                         // TODO test
                         //pointer.Use();
-                        originalPED = pointer;
+                        //originalPED = pointer;
                         break;
                     }
                 }
@@ -486,29 +571,29 @@ namespace frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter
                     if (firstVisibleItem_IndexInView == 0)
                         return;
 
-                    float firstVisibleItemInsetFromStart = _InternalParams.GetItemOffsetFromParentStartUsingItemIndexInView(firstVisibleItem_IndexInView);
-                    float contentInsetFromVPStart = _Params.content.GetInsetFromParentEdge(_Params.viewport, _InternalParams.startEdge);
+                    float firstVisibleItemInsetFromStart = _InternalState.GetItemOffsetFromParentStartUsingItemIndexInView(firstVisibleItem_IndexInView);
+                    float contentInsetFromVPStart = _Params.content.GetInsetFromParentEdge(_Params.viewport, _InternalState.startEdge);
                     float firstVisibleItemAmountOutside = -contentInsetFromVPStart - firstVisibleItemInsetFromStart;
-                    float contentNewInsetFromParentStart = -(firstVisibleItemAmountOutside + _InternalParams.paddingContentStart);
+                    float contentNewInsetFromParentStart = -(firstVisibleItemAmountOutside + _InternalState.paddingContentStart);
                     contentNewInsetFromParentEdge = contentNewInsetFromParentStart;
-                    edgeToInsetContentFrom = _InternalParams.startEdge;
+                    edgeToInsetContentFrom = _InternalState.startEdge;
                 }
                 else
                 {
                     // Already done (this can sometimes mean there are too few items in list)
-                    if (lastVisibleItem_IndexInView + 1 >= _InternalParams.itemsCount)
+                    if (lastVisibleItem_IndexInView + 1 >= _InternalState.itemsCount)
                         return;
 
-                    float lastVisibleItemInsetFromStart = _InternalParams.GetItemOffsetFromParentStartUsingItemIndexInView(lastVisibleItem_IndexInView);
-                    float lastVisibleItemSize = _InternalParams.itemsSizes[lastVisibleItem_IndexInView];
-                    float lastVisibleItemInsetFromEnd = _InternalParams.contentPanelSize - (lastVisibleItemInsetFromStart + lastVisibleItemSize);
-                    float contentInsetFromVPEnd = _Params.content.GetInsetFromParentEdge(_Params.viewport, _InternalParams.endEdge);
+                    float lastVisibleItemInsetFromStart = _InternalState.GetItemOffsetFromParentStartUsingItemIndexInView(lastVisibleItem_IndexInView);
+                    float lastVisibleItemSize = _InternalState.itemsSizes[lastVisibleItem_IndexInView];
+                    float lastVisibleItemInsetFromEnd = _InternalState.contentPanelSize - (lastVisibleItemInsetFromStart + lastVisibleItemSize);
+                    float contentInsetFromVPEnd = _Params.content.GetInsetFromParentEdge(_Params.viewport, _InternalState.endEdge);
                     float lastVisibleItemAmountOutside = -contentInsetFromVPEnd - lastVisibleItemInsetFromEnd;
-                    float contentNewInsetFromParentEnd = -(lastVisibleItemAmountOutside + _InternalParams.paddingContentEnd);
+                    float contentNewInsetFromParentEnd = -(lastVisibleItemAmountOutside + _InternalState.paddingContentEnd);
                     contentNewInsetFromParentEdge = contentNewInsetFromParentEnd;
-                    edgeToInsetContentFrom = _InternalParams.endEdge;
+                    edgeToInsetContentFrom = _InternalState.endEdge;
                 }
-                _Params.content.SetInsetAndSizeFromParentEdgeWithCurrentAnchors(_Params.viewport, edgeToInsetContentFrom, contentNewInsetFromParentEdge, _InternalParams.contentPanelSize);
+                _Params.content.SetInsetAndSizeFromParentEdgeWithCurrentAnchors(_Params.viewport, edgeToInsetContentFrom, contentNewInsetFromParentEdge, _InternalState.contentPanelSize);
                 _Params.scrollRect.Rebuild(CanvasUpdate.PostLayout);
                 _Params.scrollRect.velocity = velocityBeforeLoop;
 
@@ -524,33 +609,34 @@ namespace frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter
                 else
                 {
                     // The next item after this will become the first one in view
-                    newRealIndexOfFirstItemInView = _InternalParams.GetItemRealIndexFromViewIndex(lastVisibleItem_IndexInView + 1);
+                    newRealIndexOfFirstItemInView = _InternalState.GetItemRealIndexFromViewIndex(lastVisibleItem_IndexInView + 1);
 
                     // Adjust the itemIndexInView for the visible items. they'll be the last ones, so the last one of them will have, for example, viewIndex = itemsCount-1
                     for (int i = 0; i < _VisibleItemsCount; ++i)
-                        _VisibleItems[i].itemIndexInView = _InternalParams.itemsCount - _VisibleItemsCount + i;
+                        _VisibleItems[i].itemIndexInView = _InternalState.itemsCount - _VisibleItemsCount + i;
                 }
-                _InternalParams.OnScrollViewLooped(newRealIndexOfFirstItemInView);
+                _InternalState.OnScrollViewLooped(newRealIndexOfFirstItemInView);
 
                 // Update the positions of the visible items so they'll retain their position relative to the viewport
                 TItemViewsHolder vh;
                 for (int i = 0; i < _VisibleItemsCount; ++i)
                 {
                     vh = _VisibleItems[i];
-                    float insetFromStart = _InternalParams.paddingContentStart + vh.itemIndexInView * _InternalParams.spacing;
+                    float insetFromStart = _InternalState.paddingContentStart + vh.itemIndexInView * _InternalState.spacing;
                     if (vh.itemIndexInView > 0)
-                        insetFromStart += _InternalParams.itemsSizesCumulative[vh.itemIndexInView - 1];
+                        insetFromStart += _InternalState.itemsSizesCumulative[vh.itemIndexInView - 1];
 
-                    vh.root.SetInsetAndSizeFromParentEdgeWithCurrentAnchors(_InternalParams.startEdge, insetFromStart, _InternalParams.itemsSizes[vh.itemIndexInView]);
+                    vh.root.SetInsetAndSizeFromParentEdgeWithCurrentAnchors(_InternalState.startEdge, insetFromStart, _InternalState.itemsSizes[vh.itemIndexInView]);
                 }
 
-                _InternalParams.UpdateLastProcessedNormalizedScrollPosition();
+                _InternalState.UpdateLastProcessedNormalizedScrollPosition();
             }
         }
 
+        /// <summary>The very core of <see cref="ScrollRectItemsAdapter8{TParams, TItemViewsHolder}"/>. You must be really brave if you think about trying to understand it :)</summary>
         void ComputeVisibility(float abstractDelta)
         {
-            /// ALIASES:
+            // ALIASES:
             // scroll down = the content goes down(the "view point" goes up); scroll up = analogue
             // the notation "x/y" means "x, if vertical scroll; y, if horizontal scroll"
             // positive scroll = down/right; negative scroll = up/left
@@ -578,17 +664,17 @@ namespace frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter
             #endregion
 
             bool negativeScroll = abstractDelta <= 0f;
-            bool verticalScroll = _Params.scrollRect.vertical;
+            //bool verticalScroll = _Params.scrollRect.vertical;
 
             // Viewport constant values
-            float vpSize = _InternalParams.viewportSize;
+            float vpSize = _InternalState.viewportSize;
 
             // Content panel constant values
-            float ctSpacing = _InternalParams.spacing,
-                  ctPadTransvStart = _InternalParams.transversalPaddingContentStart;
+            float ctSpacing = _InternalState.spacing,
+                  ctPadTransvStart = _InternalState.transversalPaddingContentStart;
 
             // Items constant values
-            float allItemsTransversalSizes = _InternalParams.itemsConstantTransversalSize;
+            float allItemsTransversalSizes = _InternalState.itemsConstantTransversalSize;
 
             // Items variable values
             TItemViewsHolder nlvHolder = null;
@@ -597,66 +683,63 @@ namespace frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter
 
             float negCurrentInsetFromCTSToUseForNLV_posCurrentInsetFromCTEToUseForNLV;
             RectTransform.Edge negStartEdge_posEndEdge;
-            RectTransform.Edge transvStartEdge = _InternalParams.transvStartEdge;
+            RectTransform.Edge transvStartEdge = _InternalState.transvStartEdge;
 
             //int negEndItemIndex_posStartItemIndex,
             //int endItemIndex, // TODO pending removal
             int endItemIndexInView,
                   neg1_posMinus1,
-                  negMinus1_pos1,
+                  //negMinus1_pos1,
                   neg1_pos0,
                   neg0_pos1;
 
-            float neg0_posVPSize;
+            //float neg0_posVPSize;
 
             if (negativeScroll)
             {
                 neg1_posMinus1 = 1;
-                negStartEdge_posEndEdge = _InternalParams.startEdge;
+                negStartEdge_posEndEdge = _InternalState.startEdge;
             }
             else
             {
                 neg1_posMinus1 = -1;
-                negStartEdge_posEndEdge = _InternalParams.endEdge;
+                negStartEdge_posEndEdge = _InternalState.endEdge;
             }
-            negMinus1_pos1 = -neg1_posMinus1;
+            //negMinus1_pos1 = -neg1_posMinus1;
             neg1_pos0 = (neg1_posMinus1 + 1) / 2;
             neg0_pos1 = 1 - neg1_pos0;
-            neg0_posVPSize = neg0_pos1 * vpSize;
+            //neg0_posVPSize = neg0_pos1 * vpSize;
 
             // -1, if negativeScroll
             // _InternalParams.itemsCount, else
-            currentLVItemIndexInView = neg0_pos1 * (_InternalParams.itemsCount - 1) - neg1_posMinus1;
+            currentLVItemIndexInView = neg0_pos1 * (_InternalState.itemsCount - 1) - neg1_posMinus1;
 
             // _InternalParams.itemsCount - 1, if negativeScroll
             // 0, else
-            endItemIndexInView = neg1_pos0 * (_InternalParams.itemsCount - 1);
+            endItemIndexInView = neg1_pos0 * (_InternalState.itemsCount - 1);
 
             float negCTInsetFromVPS_posCTInsetFromVPE = _Params.content.GetInsetFromParentEdge(_Params.viewport, negStartEdge_posEndEdge);
 
             // _VisibleItemsCount is always 0 in the first call of this func after the list is modified 
             if (_VisibleItemsCount > 0)
             {
-                /// 
-                /// 
-                /// startingLV means the item in _VisibleItems that's the closest to the next one that'll spawn
-                /// 
-                /// 
-                /// 
+                // 
+                // startingLV means the item in _VisibleItems that's the closest to the next one that'll spawn
+                // 
 
 
 
                 int startingLVHolderIndex;
                 // The item that was the last in the _VisibleItems; We're inferring the positions of the other ones after(below/to the right, depending on hor/vert scroll) it this way, since the heights(widths for hor scroll) are known
                 TItemViewsHolder startingLVHolder;
-                RectTransform startingLVRT;
+                //RectTransform startingLVRT;
 
                 // startingLVHolderIndex will be:
                 // _VisibleITemsCount - 1, if negativeScroll
                 // 0, if upScroll
                 startingLVHolderIndex = neg1_pos0 * (_VisibleItemsCount - 1);
                 startingLVHolder = _VisibleItems[startingLVHolderIndex];
-                startingLVRT = startingLVHolder.root;
+                //startingLVRT = startingLVHolder.root;
 
                 // Approach name(will be referenced below): (%%%)
                 // currentStartToUseForNLV will be:
@@ -701,7 +784,7 @@ namespace frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter
                 // _VisibleItems to itemsOutsideViewport; they'll be candidates for recycling
                 TItemViewsHolder curRecCandidateVH;
                 bool currentIsOutside;
-                RectTransform curRecCandidateRT;
+                //RectTransform curRecCandidateRT;
                 float curRecCandidateSizePlusSpacing;
                 float insetFromParentEdge;
                 while (true)
@@ -711,24 +794,24 @@ namespace frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter
                     // last in _VisibleItems, else
                     int curRecCandidateVHIndex = neg0_pos1 * (_VisibleItemsCount - 1);
                     curRecCandidateVH = _VisibleItems[curRecCandidateVHIndex];
-                    curRecCandidateRT = curRecCandidateVH.root;
+                    //curRecCandidateRT = curRecCandidateVH.root;
                     //float lvSize = _InternalParams.itemsSizes[currentLVItemIndex];
-                    curRecCandidateSizePlusSpacing = _InternalParams.itemsSizes[curRecCandidateVH.itemIndexInView] + ctSpacing; // major bugfix: 18.12.2016 1:20: must use vItemHolder.itemIndex INSTEAD of currentLVItemIndex
+                    curRecCandidateSizePlusSpacing = _InternalState.itemsSizes[curRecCandidateVH.itemIndexInView] + ctSpacing; // major bugfix: 18.12.2016 1:20: must use vItemHolder.itemIndex INSTEAD of currentLVItemIndex
                     
                     // Commented: using a more efficient way of doing this by using cumulative sizes, even if we need to use an "if"
                     //currentIsOutside = negCTInsetFromVPS_posCTInsetFromVPE + (curRecCandidateRT.GetInsetFromParentEdge(_Params.content, negStartEdge_posEndEdge) + curRecCandidateSizePlusSpacing) <= 0f;
                     if (negativeScroll)
-                        insetFromParentEdge = _InternalParams.GetItemOffsetFromParentStartUsingItemIndexInView(curRecCandidateVH.itemIndexInView);
+                        insetFromParentEdge = _InternalState.GetItemOffsetFromParentStartUsingItemIndexInView(curRecCandidateVH.itemIndexInView);
                     else
-                        insetFromParentEdge = _InternalParams.GetItemOffsetFromParentEndUsingItemIndexInView(curRecCandidateVH.itemIndexInView);
+                        insetFromParentEdge = _InternalState.GetItemOffsetFromParentEndUsingItemIndexInView(curRecCandidateVH.itemIndexInView);
                     currentIsOutside = negCTInsetFromVPS_posCTInsetFromVPE + (insetFromParentEdge + curRecCandidateSizePlusSpacing) <= 0f;
 
                     if (currentIsOutside)
                     {
-                        _InternalParams.recyclableItems.Add(curRecCandidateVH);
+                        _InternalState.recyclableItems.Add(curRecCandidateVH);
                         _VisibleItems.RemoveAt(curRecCandidateVHIndex);
                         --_VisibleItemsCount;
-                        ++_InternalParams.recyclableItemsCount;
+                        ++_InternalState.recyclableItemsCount;
 
                         if (_VisibleItemsCount == 0) // all items that were considered visible are now outside viewport => will need to seek even more below 
                             break;
@@ -757,10 +840,10 @@ namespace frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter
                 {
                     nlvIndexInView += neg1_posMinus1;
                     if (negativeScroll)
-                        negCurrentInsetFromCTSToUseForNLV_posCurrentInsetFromCTEToUseForNLV = _InternalParams.GetItemOffsetFromParentStartUsingItemIndexInView(nlvIndexInView);
+                        negCurrentInsetFromCTSToUseForNLV_posCurrentInsetFromCTEToUseForNLV = _InternalState.GetItemOffsetFromParentStartUsingItemIndexInView(nlvIndexInView);
                     else
-                        negCurrentInsetFromCTSToUseForNLV_posCurrentInsetFromCTEToUseForNLV = _InternalParams.GetItemOffsetFromParentEndUsingItemIndexInView(nlvIndexInView);
-                    nlvSize = _InternalParams.itemsSizes[nlvIndexInView];
+                        negCurrentInsetFromCTSToUseForNLV_posCurrentInsetFromCTEToUseForNLV = _InternalState.GetItemOffsetFromParentEndUsingItemIndexInView(nlvIndexInView);
+                    nlvSize = _InternalState.itemsSizes[nlvIndexInView];
                     negNLVCandidateBeforeVP_posNLVCandidateAfterVP = negCTInsetFromVPS_posCTInsetFromVPE + (negCurrentInsetFromCTSToUseForNLV_posCurrentInsetFromCTEToUseForNLV + nlvSize) <= 0f;
                     if (negNLVCandidateBeforeVP_posNLVCandidateAfterVP)
                     {
@@ -789,7 +872,7 @@ namespace frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter
                 if (breakBigLoop)
                     break;
 
-                int nlvRealIndex = _InternalParams.GetItemRealIndexFromViewIndex(nlvIndexInView);
+                int nlvRealIndex = _InternalState.GetItemRealIndexFromViewIndex(nlvIndexInView);
 
                 // Search for a recyclable holder for current NLV
                 // This block remains the same regardless of <negativeScroll> variable, because the items in <itemsOutsideViewport> were already added in an order dependent on <negativeScroll>
@@ -798,13 +881,13 @@ namespace frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter
                 TItemViewsHolder potentiallyRecyclable;
                 while (true)
                 {
-                    if (i < _InternalParams.recyclableItemsCount)
+                    if (i < _InternalState.recyclableItemsCount)
                     {
-                        potentiallyRecyclable = _InternalParams.recyclableItems[i];
+                        potentiallyRecyclable = _InternalState.recyclableItems[i];
                         if (IsRecyclable(potentiallyRecyclable, nlvRealIndex, nlvSize))
                         {
-                            _InternalParams.recyclableItems.RemoveAt(i);
-                            --_InternalParams.recyclableItemsCount;
+                            _InternalState.recyclableItems.RemoveAt(i);
+                            --_InternalState.recyclableItemsCount;
                             nlvHolder = potentiallyRecyclable;
                             break;
                         }
@@ -813,7 +896,7 @@ namespace frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter
                     else
                     {
                         // Found no recyclable view with the requested height
-                        nlvHolder = new TItemViewsHolder();
+                        nlvHolder = CreateViewsHolder(nlvRealIndex);
                         break;
                     }
                 }
@@ -827,10 +910,10 @@ namespace frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter
                 nlvHolder.itemIndexInView = nlvIndexInView;
 
                 // Cache its height
-                nlvHolder.cachedSize = _InternalParams.itemsSizes[nlvIndexInView];
+                nlvHolder.cachedSize = _InternalState.itemsSizes[nlvIndexInView];
 
                 // Update its views
-                InitOrUpdateItemViewHolder(nlvHolder);
+                UpdateViewsHolder(nlvHolder);
                 RectTransform nlvRT = nlvHolder.root;
 
                 // Make sure it's GO is activated
@@ -838,7 +921,7 @@ namespace frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter
 
                 // Make sure it's left-top anchored (the need for this arose together with the feature for changind an item's size 
                 // (an thus, the content's size) externally, using RequestChangeItemSizeAndUpdateLayout)
-                nlvRT.anchorMin = nlvRT.anchorMax = _InternalParams.constantAnchorPosForAllItems;
+                nlvRT.anchorMin = nlvRT.anchorMax = _InternalState.constantAnchorPosForAllItems;
 
                 // Make sure it's parented to content panel
                 nlvRT.SetParent(_Params.content, false);
@@ -869,23 +952,23 @@ namespace frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter
             // Keep track of the <maximum number of items that were visible since last scroll view size change>, so we can optimize the object pooling process
             // by destroying objects in recycle bin only if the aforementioned number is  less than <numVisibleItems + numItemsInRecycleBin>,
             // and of course, making sure at least 1 item is in the bin all the time
-            if (_VisibleItemsCount > _InternalParams.maxVisibleItemsSeenSinceLastScrollViewSizeChange)
-                _InternalParams.maxVisibleItemsSeenSinceLastScrollViewSizeChange = _VisibleItemsCount;
+            if (_VisibleItemsCount > _InternalState.maxVisibleItemsSeenSinceLastScrollViewSizeChange)
+                _InternalState.maxVisibleItemsSeenSinceLastScrollViewSizeChange = _VisibleItemsCount;
 
             // Disable all recyclable views
             // Destroy remaining unused views, BUT keep one, so there's always a reserve, instead of creating/destroying very frequently
             // + keep <numVisibleItems + numItemsInRecycleBin> abvove <_InternalParams.maxVisibleItemsSeenSinceLastScrollViewSizeChange>
             // See GetNumExcessObjects()
             GameObject go;
-            for (int i = 0; i < _InternalParams.recyclableItemsCount; )
+            for (int i = 0; i < _InternalState.recyclableItemsCount; )
             {
-                go = _InternalParams.recyclableItems[i].root.gameObject;
+                go = _InternalState.recyclableItems[i].root.gameObject;
                 go.SetActive(false);
                 if (GetNumExcessObjects() > 0)
                 {
                     GameObject.Destroy(go);
-                    _InternalParams.recyclableItems.RemoveAt(i);
-                    --_InternalParams.recyclableItemsCount;
+                    _InternalState.recyclableItems.RemoveAt(i);
+                    --_InternalState.recyclableItemsCount;
                 }
                 else
                     ++i;
@@ -894,10 +977,9 @@ namespace frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter
 
         int GetNumExcessObjects()
         {
-            //return Mathf.Max(_InternalParams.recyclableItemsCount - 1, 0);
-            if (_InternalParams.recyclableItemsCount > 1)
+            if (_InternalState.recyclableItemsCount > 1)
             {
-                int excess = (_InternalParams.recyclableItemsCount + _VisibleItemsCount) - GetMinNumObjectsToKeepInMemory();
+                int excess = (_InternalState.recyclableItemsCount + _VisibleItemsCount) - GetMinNumObjectsToKeepInMemory();
                 if (excess > 0)
                     return excess;
             }
@@ -906,16 +988,14 @@ namespace frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter
         }
 
         int GetMinNumObjectsToKeepInMemory()
-        {
-            return _Params.minNumberOfObjectsToKeepInMemory > 0 ? _Params.minNumberOfObjectsToKeepInMemory : _InternalParams.maxVisibleItemsSeenSinceLastScrollViewSizeChange+1;
-        }
+        { return _Params.minNumberOfObjectsToKeepInMemory > 0 ? _Params.minNumberOfObjectsToKeepInMemory : _InternalState.maxVisibleItemsSeenSinceLastScrollViewSizeChange+1; }
 
         void SetContentEdgeOffsetFromViewportEdge(RectTransform.Edge contentAndViewportEdge, float offset)
         {
             Canvas.ForceUpdateCanvases();
             _Params.scrollRect.StopMovement();
-            _Params.content.SetInsetAndSizeFromParentEdgeWithCurrentAnchors(contentAndViewportEdge, offset, _InternalParams.contentPanelSize);
-            _InternalParams.CacheScrollViewInfo(); // the content size might slignly change due to eventual rounding errors, so we cache the info again
+            _Params.content.SetInsetAndSizeFromParentEdgeWithCurrentAnchors(contentAndViewportEdge, offset, _InternalState.contentPanelSize);
+            _InternalState.CacheScrollViewInfo(); // the content size might slignly change due to eventual rounding errors, so we cache the info again
             // TODO see if a ChangeItemsCountTo is necessary for a refresh
         }
 
@@ -926,13 +1006,11 @@ namespace frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter
 
 
 
-        // A LayoutGroup will be added to source params's content game object if not existent, depending on the type of the scroll rect (horizontal/vertical)
-        // the LayoutGroup component will be disabled
-        class InternalParams
+        /// <summary>Contain cached variables, helper methods and generally things that are not exposed to inheritors. Note: the LayoutGroup component on content, if any, will be disabled</summary>
+        class InternalState
         {
             /// Fields are in format: value if vertical scrolling/value if horizontal scrolling
             // Constant params 
-            //internal HorizontalOrVerticalLayoutGroup layoutGroup;
             internal readonly Vector2 constantAnchorPosForAllItems = new Vector2(0f, 1f); // top-left
             internal float viewportSize;
             internal float paddingContentStart; // top/left
@@ -944,6 +1022,7 @@ namespace frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter
             internal RectTransform.Edge endEdge; // RectTransform.Edge.Bottom/RectTransform.Edge.Right
             internal RectTransform.Edge transvStartEdge; // RectTransform.Edge.Left/RectTransform.Edge.Top
             internal float itemsConstantTransversalSize; // widths/heights
+			internal bool layoutRebuildPendingDueToScreenSizeChangeEvent;
 
             // Cache params
             internal int itemsCount;
@@ -963,7 +1042,7 @@ namespace frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter
             TParams _SourceParams;
             Func<int, float> _GetItemSizeFunc;
 
-            InternalParams(TParams sourceParams, ScrollRectItemsAdapter8<TParams, TItemViewsHolder> adapter)
+            InternalState(TParams sourceParams, ScrollRectItemsAdapter8<TParams, TItemViewsHolder> adapter)
             {
                 _SourceParams = sourceParams;
 
@@ -1009,14 +1088,14 @@ namespace frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter
                 CacheScrollViewInfo();
             }
 
-            internal static InternalParams CreateFromSourceParamsOrThrow(TParams sourceParams, ScrollRectItemsAdapter8<TParams, TItemViewsHolder> adapter)
+            internal static InternalState CreateFromSourceParamsOrThrow(TParams sourceParams, ScrollRectItemsAdapter8<TParams, TItemViewsHolder> adapter)
             {
                 if (sourceParams.scrollRect.horizontal && sourceParams.scrollRect.vertical)
                 {
                     throw new UnityException("Can't optimize a ScrollRect with both horizontal and vertical scrolling modes. Disable one of them");
                 }
 
-                return new InternalParams(sourceParams, adapter);
+                return new InternalState(sourceParams, adapter);
             }
 
 
@@ -1083,11 +1162,7 @@ namespace frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter
                 onScrollPositionChangedFiredAndVisibilityComputedForCurrentItems = false;
             }
 
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <param name="viewHolder"></param>
-            /// <returns>the resolved size, as this may be a bit different than the passed <newSize> for huge data sets (>100k items)</returns>
+            /// <returns>the resolved size, as this may be a bit different than the passed <paramref name="requestedSize"/> for huge data sets (>100k items)</returns>
             internal float ChangeItemSizeAndUpdateContentSizeAccordingly(TItemViewsHolder viewHolder, float requestedSize, bool itemEndEdgeStationary)
             {
                 //LiveDebugger8.logR("ChangeItemCountInternal");
@@ -1095,7 +1170,7 @@ namespace frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter
                     throw new UnityException("Wait for initialization first");
 
                 if (viewHolder.root == null)
-                    throw new UnityException("God bless"); // shouldn't happen if implemented according to documentation/examples
+                    throw new UnityException("God bless: shouldn't happen if implemented according to documentation/examples"); // shouldn't happen if implemented according to documentation/examples
                 
                 viewHolder.root.SetInsetAndSizeFromParentEdgeWithCurrentAnchors(startEdge, GetItemOffsetFromParentStartUsingItemIndexInView(viewHolder.itemIndexInView),  requestedSize);
                 float resolvedSize;

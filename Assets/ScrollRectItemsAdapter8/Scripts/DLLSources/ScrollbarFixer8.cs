@@ -6,9 +6,10 @@ using System;
 
 namespace frame8.Logic.Misc.Visual.UI.MonoBehaviours
 {
-    // Fixes ScrollView inertia when the content grows too big. The default method cuts off the inertia in most cases.
-    // Note that once started, a listener is assigned (by Unity internals) to the scrollbar and any drag will result in 
-    // Make sure no scrollbars are assigned
+    /// <summary>
+    /// <para>Fixes ScrollView inertia when the content grows too big. The default method cuts off the inertia in most cases.</para>
+    /// <para>Make sure no scrollbars are assigned to the ScrollRect</para>
+    /// </summary>
     [RequireComponent(typeof(Scrollbar))]
     public class ScrollbarFixer8 : MonoBehaviour, IBeginDragHandler, IEndDragHandler, IDragHandler
     {
@@ -233,7 +234,7 @@ namespace frame8.Logic.Misc.Visual.UI.MonoBehaviours
             }
         }
 
-
+        #region Unity UI event callbacks
         public void OnBeginDrag(PointerEventData eventData) { _Dragging = true; }
         public void OnEndDrag(PointerEventData eventData) { _Dragging = false; }
         public void OnDrag(PointerEventData eventData)
@@ -247,5 +248,6 @@ namespace frame8.Logic.Misc.Visual.UI.MonoBehaviours
 
             scrollRect.normalizedPosition = normPos;
         }
+        #endregion
     }
 }

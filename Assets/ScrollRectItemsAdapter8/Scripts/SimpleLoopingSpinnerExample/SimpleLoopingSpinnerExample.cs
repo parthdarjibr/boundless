@@ -7,120 +7,138 @@ using frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter;
 using frame8.Logic.Misc.Other.Extensions;
 
 
-public class SimpleLoopingSpinnerExample : MonoBehaviour
+namespace frame8.ScrollRectItemsAdapter.SimpleLoopingSpinnerExample
 {
-    public MyParams adapterParams; // configuration visible in the inspector
- 
-	// Instance of your ScrollRectItemsAdapter8 implementation
-    MyScrollRectAdapter _Adapter;
- 
-    void Start()
+    /// <summary>Very basic example with a spinner that loops its items, similarly to a time picker in an alarm app</summary>
+    public class SimpleLoopingSpinnerExample : MonoBehaviour
     {
-        _Adapter = new MyScrollRectAdapter();
- 
-        // Need to initialize adapter after a few frames, so Unity will finish initializing its layout
-        StartCoroutine(DelayedInit());
-    }
- 
-    void OnDestroy()
-    {
-		// The adapter has some resources that need to be disposed after you destroy the scroll view
-        if (_Adapter != null)
-            _Adapter.Dispose();
-    }
- 
-	// Initialize the adapter after 3 frames
-	// You can also try calling Canvas.ForceUpdateCanvases() instead if you for some reason can't wait 3 frames, although it wasn't tested
-    IEnumerator DelayedInit()
-    {
-        // Wait 3 frames
-        yield return null;
-        yield return null;
-        yield return null;
- 
-        _Adapter.Init(adapterParams);
-        _Adapter.ChangeItemCountTo(adapterParams.numberOfItems);
-    }
+        /// <summary>Configuration visible in the inspector</summary>
+        public MyParams adapterParams;
 
-    void Update()
-    {
-        // Parameters are null until Init() is called, so this is an indicator that the adapter was not yet initialized. See DelayedInit() above
-        if (_Adapter.Parameters == null)
-            return;
+        // Instance of your ScrollRectItemsAdapter8 implementation
+        MyScrollRectAdapter _Adapter;
 
-        var viewHoldersVisibleItems = _Adapter.VisibleItemsCopy;
 
-        adapterParams.currentSelectedIndicator.text = "Selected: ";
-        if (viewHoldersVisibleItems.Count == 0)
-            return;
-
-        var middleVH = viewHoldersVisibleItems[viewHoldersVisibleItems.Count / 2];
-
-        adapterParams.currentSelectedIndicator.text += "#" + middleVH.itemIndex + ", value=" + adapterParams.GetItemValueAtIndex(middleVH.itemIndex);
-        middleVH.background.color = adapterParams.selectedColor;
-
-        foreach (var other in viewHoldersVisibleItems)
-            if (other != middleVH)
-                other.background.color = adapterParams.nonSelectedColor;
-    }
-
-    #region ScrollRectItemsAdapter8 code
-    [Serializable] // serializable, so it can be shown in inspector
-    public class MyParams : BaseParams
-    {
-        public RectTransform prefab;
-
-        public int startItemNumber = 0;
-        public int increment = 1;
-        public int numberOfItems = 10;
-
-        public Color selectedColor, nonSelectedColor;
-
-        public Text currentSelectedIndicator;
-
-        public int GetItemValueAtIndex(int index) { return startItemNumber + increment * index; }
-    }
- 
-	// Self-explanatory
-    public class MyItemViewsHolder : BaseItemViewsHolder
-    {
-        public Image background;
-        public Text titleText;
-
-        public override void CollectViews()
+        IEnumerator Start()
         {
-            base.CollectViews();
+             _Adapter = new MyScrollRectAdapter();
 
-            background = root.GetComponent<Image>();
-            titleText = root.GetComponentInChildren<Text>();
+            // Wait 3 frames
+            yield return null;
+            yield return null;
+            yield return null;
+
+            // Initialize the adapter after 3 frames
+            // You can also try calling Canvas.ForceUpdateCanvases() instead if you for some reason can't wait 3 frames, although it wasn't tested
+            _Adapter.Init(adapterParams);
+            _Adapter.ChangeItemCountTo(adapterParams.numberOfItems);
         }
-    }
- 
-    public class MyScrollRectAdapter : ScrollRectItemsAdapter8<MyParams, MyItemViewsHolder>
-    {
-		// Will be called for vertical scroll views
-        protected override float GetItemHeight(int index) { return _Params.prefab.rect.height; }
-		// Will be called for horizontal scroll views
-        protected override float GetItemWidth(int index) { return _Params.prefab.rect.width; }
- 
-		// Here's the meat of the whole recycling process
-        protected override void InitOrUpdateItemViewHolder(MyItemViewsHolder newOrRecycled)
+
+        void OnDestroy()
         {
-            if (newOrRecycled.root == null) // container empty => instantiate the prefab in it
+            // The adapter has some resources that need to be disposed after you destroy the scroll view
+            if (_Adapter != null)
+                _Adapter.Dispose();
+        }
+
+        void Update()
+        {
+            // Parameters are null until Init() is called, so this is an indicator that the adapter was not yet initialized. See DelayedInit() above
+            if (_Adapter.Parameters == null)
+                return;
+
+            adapterParams.currentSelectedIndicator.text = "Selected: ";
+            if (_Adapter.VisibleItemsCount == 0)
+                return;
+
+            int middleVHIndex = _Adapter.VisibleItemsCount / 2;
+            var middleVH = _Adapter.GetItemViewsHolder(middleVHIndex);
+
+            adapterParams.currentSelectedIndicator.text += "#" + middleVH.itemIndex + ", value=" + adapterParams.GetItemValueAtIndex(middleVH.itemIndex);
+            middleVH.background.color = adapterParams.selectedColor;
+
+
+            for (int i = 0; i < _Adapter.VisibleItemsCount; ++i)
             {
-                newOrRecycled.root = (GameObject.Instantiate(_Params.prefab.gameObject) as GameObject).transform as RectTransform;
-                newOrRecycled.root.gameObject.SetActive(true); // just in case the prefab was disabled
-                newOrRecycled.CollectViews();
+                if (i != middleVHIndex)
+                    _Adapter.GetItemViewsHolder(i).background.color = adapterParams.nonSelectedColor;
             }
- 
-            // Update v2.4: commented, because renaming game objects in a scroll view each frame messes up with some versions of unity and slows performance; 
-            //// optionally rename the object
-            //newOrRecycled.root.name = "ListItem " + newOrRecycled.itemIndex;
-
-            newOrRecycled.titleText.text = _Params.GetItemValueAtIndex(newOrRecycled.itemIndex) + "";
-            newOrRecycled.background.color = Color.white;
         }
+
+        /// <summary>Adds 10 items</summary>
+        public void Add10More()
+        {
+            adapterParams.numberOfItems += 10;
+            _Adapter.ChangeItemCountTo(adapterParams.numberOfItems);
+        }
+
+        /// <summary>Removes 20 items</summary>
+        public void Remove20()
+        {
+            adapterParams.numberOfItems -= 20;
+            adapterParams.numberOfItems = Math.Max(0, adapterParams.numberOfItems);
+            _Adapter.ChangeItemCountTo(adapterParams.numberOfItems);
+        }
+
+        #region ScrollRectItemsAdapter8 code
+        [Serializable] // serializable, so it can be shown in inspector
+        public class MyParams : BaseParams
+        {
+            public RectTransform prefab;
+
+            public int startItemNumber = 0;
+            public int increment = 1;
+            public int numberOfItems = 10;
+
+            public Color selectedColor, nonSelectedColor;
+
+            public Text currentSelectedIndicator;
+
+            /// <summary>The value of each item is calculated dynamically using its <paramref name="index"/>, <see cref="startItemNumber"/> and the <see cref="increment"/><summary>
+            /// <returns>The item's value (the displayed number)</returns>
+            public int GetItemValueAtIndex(int index) { return startItemNumber + increment * index; }
+        }
+
+        // Self-explanatory
+        public class MyItemViewsHolder : BaseItemViewsHolder
+        {
+            public Image background;
+            public Text titleText;
+
+            public override void CollectViews()
+            {
+                base.CollectViews();
+
+                background = root.GetComponent<Image>();
+                titleText = root.GetComponentInChildren<Text>();
+            }
+        }
+
+        /// <summary>Minimal implementation of the adapter that initializes & updates the viewholders. The size of each item is fixed in this case and it's the same as the prefab's</summary>
+        public class MyScrollRectAdapter : ScrollRectItemsAdapter8<MyParams, MyItemViewsHolder>
+        {
+            // Will be called for vertical scroll views
+            protected override float GetItemHeight(int index) { return _Params.prefab.rect.height; }
+
+            // Will be called for horizontal scroll views
+            protected override float GetItemWidth(int index) { return _Params.prefab.rect.width; }
+
+            protected override MyItemViewsHolder CreateViewsHolder(int itemIndex)
+            {
+                var instance = new MyItemViewsHolder();
+                instance.Init(_Params.prefab, itemIndex);
+
+                return instance;
+            }
+
+            // Here's the meat of the whole recycling process
+            protected override void UpdateViewsHolder(MyItemViewsHolder newOrRecycled)
+            {
+                newOrRecycled.titleText.text = _Params.GetItemValueAtIndex(newOrRecycled.itemIndex) + "";
+                newOrRecycled.background.color = Color.white;
+            }
+        }
+        #endregion
+
     }
-    #endregion
- 
 }

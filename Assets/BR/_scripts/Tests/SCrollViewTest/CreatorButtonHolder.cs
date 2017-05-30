@@ -12,7 +12,7 @@ using frame8.Logic.Misc.Other.Extensions;
 using frame8.ScrollRectItemsAdapter.Util.GridView;
 using UnityEngine.UI;
 
-public class CreatorItemsViewHolder : CellViewHolder 
+public class CreatorItemsViewHolder : CellViewsHolder 
 {
 	public RawImage infPicture;
 	public Image infPicProgressBar;
