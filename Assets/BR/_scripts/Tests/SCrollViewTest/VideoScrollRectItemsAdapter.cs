@@ -25,43 +25,44 @@ public class VideoScrollRectItemsAdapter : GridAdapter<VideoDetailParams, VideoI
 
 		int itemIndexAtRequest = viewHolder.itemIndex;
 		string requestedPath = model.thumbnailUrl;
-        var request = new SimpleImageDownloader.Request()
-        {
-            url = requestedPath,
-            onDone = texture =>
-            {
-                if (IsModelStillValid(viewHolder.itemIndex, itemIndexAtRequest, requestedPath))
-                {
-                    viewHolder.thumbProgress.fillAmount = 0f;
-                    /*
-                    if (viewHolder.thumbnail.texture)
-                    {
-                        var as2D = viewHolder.thumbnail.texture as Texture2D;
-                        if(as2D)
-                        {
-                            texture.LoadTextureInto(as2D);
-                            return;
-                        }
-                        MonoBehaviour.Destroy(viewHolder.thumbnail.texture);
-                    }*/
 
-                    viewHolder.thumbnail.texture = texture.CreateTextureFromReceivedData();
-                }
-            },
-            onProgress = progress =>
+        // Check if the url exists in cache dictionary
+        Texture2D tex;
+        if (CacheManager.instance.GetCachedTexture(requestedPath, out tex))
+        {
+            viewHolder.thumbProgress.fillAmount = 0f;
+            viewHolder.thumbnail.texture = tex;
+        }
+        else
+        {
+
+            var request = new SimpleImageDownloader.Request()
             {
-                if (IsModelStillValid(viewHolder.itemIndex, itemIndexAtRequest, requestedPath))
-                    viewHolder.thumbProgress.fillAmount = 1f - progress;
-            },
-            onError = () =>
-            {
-                if (IsModelStillValid(viewHolder.itemIndex, itemIndexAtRequest, requestedPath))
+                url = requestedPath,
+                onDone = texture =>
                 {
-                    Debug.Log("Error downloading thumbnail image");
+                    if (IsModelStillValid(viewHolder.itemIndex, itemIndexAtRequest, requestedPath))
+                    {
+                        viewHolder.thumbProgress.fillAmount = 0f;
+                        viewHolder.thumbnail.texture = texture.CreateTextureFromReceivedData();
+                        CacheManager.instance.AddToDictionary(requestedPath, texture.CreateTextureFromReceivedData());
+                    }
+                },
+                onProgress = progress =>
+                {
+                    if (IsModelStillValid(viewHolder.itemIndex, itemIndexAtRequest, requestedPath))
+                        viewHolder.thumbProgress.fillAmount = 1f - progress;
+                },
+                onError = () =>
+                {
+                    if (IsModelStillValid(viewHolder.itemIndex, itemIndexAtRequest, requestedPath))
+                    {
+                        Debug.Log("Error downloading thumbnail image");
+                    }
                 }
-            }
-        };
-        SimpleImageDownloader.Instance.Enqueue(request);
+            };
+            SimpleImageDownloader.Instance.Enqueue(request);
+        }
 
         /*
         SimpleImageDownloader.Instance.Download (
@@ -111,44 +112,42 @@ public class VideoScrollRectItemsAdapter : GridAdapter<VideoDetailParams, VideoI
 			viewHolder.tvInfluencerName.text = "@" + model.userHandle;
 			string userPicPath = model.userPicUrl;
 
-            var creatorRequest = new SimpleImageDownloader.Request()
+            Texture2D userTex;
+            if (CacheManager.instance.GetCachedTexture(userPicPath, out userTex))
             {
-                url = userPicPath,
-                onDone = texture =>
+                viewHolder.infPicProgress.fillAmount = 0f;
+                viewHolder.infPicture.texture = userTex;
+            }
+            else
+            {
+                var creatorRequest = new SimpleImageDownloader.Request()
                 {
-                    if (IsModelStillValid(viewHolder.itemIndex, itemIndexAtRequest, userPicPath))
+                    url = userPicPath,
+                    onDone = texture =>
                     {
-                        viewHolder.infPicProgress.fillAmount = 0f;
-                        /*
-                        if(viewHolder.infPicture.texture)
+                        if (IsModelStillValid(viewHolder.itemIndex, itemIndexAtRequest, userPicPath))
                         {
-                            var as2D = viewHolder.infPicture.texture as Texture2D;
-                            if(as2D)
-                            {
-                                texture.LoadTextureInto(as2D);
-                                return;
-                            }
-                            MonoBehaviour.Destroy(viewHolder.infPicture.texture);
-                        }*/
-                        viewHolder.infPicture.texture = texture.CreateTextureFromReceivedData();
-                    }
-                },
-                onProgress = progress =>
-                {
-                    if (IsModelStillValid(viewHolder.itemIndex, itemIndexAtRequest, userPicPath))
-                        viewHolder.infPicProgress.fillAmount = 1f - progress;
-                },
-                onError = () =>
-                {
-                    if (IsModelStillValid(viewHolder.itemIndex, itemIndexAtRequest, userPicPath))
+                            viewHolder.infPicProgress.fillAmount = 0f;
+                            viewHolder.infPicture.texture = texture.CreateTextureFromReceivedData();
+                            CacheManager.instance.AddToDictionary(userPicPath, texture.CreateTextureFromReceivedData());
+                        }
+                    },
+                    onProgress = progress =>
                     {
-                        Debug.Log("Error downloading influencer image");
+                        if (IsModelStillValid(viewHolder.itemIndex, itemIndexAtRequest, userPicPath))
+                            viewHolder.infPicProgress.fillAmount = 1f - progress;
+                    },
+                    onError = () =>
+                    {
+                        if (IsModelStillValid(viewHolder.itemIndex, itemIndexAtRequest, userPicPath))
+                        {
+                            Debug.Log("Error downloading influencer image");
+                        }
                     }
-                }
-            };
+                };
 
-            SimpleImageDownloader.Instance.Enqueue(creatorRequest);
-
+                SimpleImageDownloader.Instance.Enqueue(creatorRequest);
+            }
             /*
             SimpleImageDownloader.Instance.Download (
 				userPicPath,

@@ -22,57 +22,60 @@ public class CreatorScrollRectItemsAdapter : GridAdapter<CreatorDetailParams, Cr
 
 	protected override void UpdateCellViewsHolder(CreatorItemsViewHolder viewHolder) {
 		viewHolder.infPicture.texture = _Params.defaultThumbnail;
-
 		var model = influencers [viewHolder.itemIndex].node;
-
 		viewHolder.infHandle.text = "@" + model.handle;
-
 		int itemIndexAtRequest = viewHolder.itemIndex;
-
 		string requestedPath = model.picUrl;
 
-
-        var request = new SimpleImageDownloader.Request()
+        Texture2D tex;
+        if (CacheManager.instance.GetCachedTexture(requestedPath, out tex))
         {
-            url = requestedPath,
-            onDone = texture =>
+            viewHolder.infPicProgressBar.fillAmount = 0f;
+            viewHolder.infPicture.texture = tex;
+        }
+        else
+        {
+            var request = new SimpleImageDownloader.Request()
             {
-                if (IsModelStillValid(viewHolder.itemIndex, itemIndexAtRequest, requestedPath))
+                url = requestedPath,
+                onDone = texture =>
                 {
-                    viewHolder.infPicProgressBar.fillAmount = 0f;
-
-                    /*
-                    if(viewHolder.infPicture.texture)
+                    if (IsModelStillValid(viewHolder.itemIndex, itemIndexAtRequest, requestedPath))
                     {
-                        var as2D = viewHolder.infPicture.texture as Texture2D;
-                        if(as2D)
+                        viewHolder.infPicProgressBar.fillAmount = 0f;
+                        viewHolder.infPicture.texture = texture.CreateTextureFromReceivedData();
+                        CacheManager.instance.AddToDictionary(requestedPath, texture.CreateTextureFromReceivedData());
+                        /*
+                        if(viewHolder.infPicture.texture)
                         {
-                            texture.LoadTextureInto(as2D);
-                            return;
-                        }
-                        MonoBehaviour.Destroy(viewHolder.infPicture.texture);
-                    }*/
-                    viewHolder.infPicture.texture = texture.CreateTextureFromReceivedData();
-                }
-            },
-            onProgress = progress =>
-            {
-                if (IsModelStillValid(viewHolder.itemIndex, itemIndexAtRequest, requestedPath))
+                            var as2D = viewHolder.infPicture.texture as Texture2D;
+                            if(as2D)
+                            {
+                                texture.LoadTextureInto(as2D);
+                                return;
+                            }
+                            MonoBehaviour.Destroy(viewHolder.infPicture.texture);
+                        }*/
+                    }
+                },
+                onProgress = progress =>
                 {
-                    viewHolder.infPicProgressBar.fillAmount = 1f - progress;
-                }
-            },
-            onError = () =>
-            {
-                if (IsModelStillValid(viewHolder.itemIndex, itemIndexAtRequest, requestedPath))
+                    if (IsModelStillValid(viewHolder.itemIndex, itemIndexAtRequest, requestedPath))
+                    {
+                        viewHolder.infPicProgressBar.fillAmount = 1f - progress;
+                    }
+                },
+                onError = () =>
                 {
-                    Debug.Log("Cannot download image");
+                    if (IsModelStillValid(viewHolder.itemIndex, itemIndexAtRequest, requestedPath))
+                    {
+                        Debug.Log("Cannot download image");
+                    }
                 }
-            }
-        };
+            };
 
-        SimpleImageDownloader.Instance.Enqueue(request);
-
+            SimpleImageDownloader.Instance.Enqueue(request);
+        }
         /*
 		SimpleImageDownloader.Instance.Download (
 			requestedPath,

@@ -90,17 +90,27 @@ public class ScrollManager : MonoBehaviour
         {
             if (shouldScroll)
             {
-                if (OVRInput.GetDown(CurvedUIInputModule.Instance.CustomControllerSwipeUp) || Input.GetKeyDown(KeyCode.Q))
+                if (OVRInput.GetDown(CurvedUIInputModule.Instance.CustomControllerSwipeUp))
                 {
-                    Debug.Log("up");
                     PerformScroll(ScrollDirection.Up);
                 }
-                if(OVRInput.GetDown(CurvedUIInputModule.Instance.CustomControllerSwipeDown) || Input.GetKeyDown(KeyCode.W))
+                if(OVRInput.GetDown(CurvedUIInputModule.Instance.CustomControllerSwipeDown))
                 {
-                    Debug.Log("down");
                     PerformScroll(ScrollDirection.Down);
                 }
                 shouldScroll = false;
+            }
+        }
+
+        if(shouldScroll)
+        {
+            if (Input.GetKeyDown(KeyCode.UpArrow))
+            {
+                PerformScroll(ScrollDirection.Up);
+            }
+            if (Input.GetKeyDown(KeyCode.DownArrow))
+            {
+                PerformScroll(ScrollDirection.Down);
             }
         }
     }

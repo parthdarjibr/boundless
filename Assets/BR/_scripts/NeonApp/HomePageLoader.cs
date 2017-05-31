@@ -39,6 +39,7 @@ namespace BR.App {
 			featuredInfluencers {
 				edges{
 					node {
+                        uniqueId
 						gid
 						displayName
 						handle
