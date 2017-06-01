@@ -357,7 +357,7 @@ namespace CurvedUI
 					// ExecuteEvents.Execute(eventData.pointerDrag, eventData, ExecuteEvents.beginDragHandler);
 					ScrollManager sm = eventData.pointerDrag.GetComponent<ScrollManager> ();
 					if (sm != null) {
-						eventData.dragging = false;
+						eventData.dragging = true;
 
 						// Check for pointer press
 						if (eventData.pointerPress != eventData.pointerDrag) {
