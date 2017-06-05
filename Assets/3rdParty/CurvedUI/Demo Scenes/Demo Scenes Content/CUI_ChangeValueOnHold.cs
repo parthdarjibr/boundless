@@ -5,10 +5,11 @@ using UnityEngine.UI;
 
 namespace CurvedUI
 {
-    public class CUI_ChangeValueOnHold : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerEnterHandler, IPointerExitHandler
+    public class CUI_ChangeValueOnHold : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
 
         bool pressed = false;
+        bool selected = false;
 
         [SerializeField]
         Image bg;
@@ -22,68 +23,50 @@ namespace CurvedUI
         [SerializeField]
         CanvasGroup MenuCG;
 
+
+
         // Update is called once per frame
         void Update()
         {
-            ChangeVal();
 
-            if (Input.GetButtonDown("Jump"))
-            {
-                pressed = true;
-            }
+            pressed = Input.GetKey(KeyCode.Space) || Input.GetButton("Fire1");
 
-            if (Input.GetButtonUp("Jump"))
-            {
-                pressed = false;
-            }
+            ChangeVal();       
         }
+
 
         void ChangeVal()
         {
 
             if (this.GetComponent<Slider>().normalizedValue == 1)
             {
+                //fade intro screen if we reached max slider value
                 IntroCG.alpha -= Time.deltaTime;
                 MenuCG.alpha += Time.deltaTime;
             }
             else {
-                this.GetComponent<Slider>().normalizedValue += pressed ? Time.deltaTime : -Time.deltaTime;
+                //change slider value - increase if its selected and button is pressed
+                this.GetComponent<Slider>().normalizedValue += (pressed && selected) ? Time.deltaTime : -Time.deltaTime;
             }
 
-            if (IntroCG.alpha > 0)
-            {
-
-                IntroCG.blocksRaycasts = true;
-            }
-            else {
-                IntroCG.blocksRaycasts = false;
-            }
+            //change if intro screen can block interactions based on its opacity
+            IntroCG.blocksRaycasts = IntroCG.alpha > 0;
         }
 
-        public void OnPointerDown(PointerEventData data)
-        {
-            pressed = true;
-        }
-
-        public void OnPointerUp(PointerEventData data)
-        {
-            pressed = false;
-        }
 
         public void OnPointerEnter(PointerEventData data)
         {
             bg.color = SelectedColor;
             bg.GetComponent<CurvedUIVertexEffect>().TesselationRequired = true;
+            selected = true;
         }
 
         public void OnPointerExit(PointerEventData data)
         {
             bg.color = NormalColor;
             bg.GetComponent<CurvedUIVertexEffect>().TesselationRequired = true;
+            selected = false;
         }
 
-        //	public void OnSubmit(BaseEventData data){
-        //		pressed = true;
-        //	}
     }
 }

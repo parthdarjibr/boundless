@@ -45,32 +45,37 @@ namespace CurvedUI {
             {
                 case ViveButton.Trigger:
                 {
-                    pressed = CurvedUIInputModule.Right.IsTriggerPressed;
+                    pressed = GetUsedController().IsTriggerPressed;
                     break;
                 }
                 case ViveButton.TouchpadPress:
                 {
-                    pressed = CurvedUIInputModule.Right.IsTouchpadPressed;
+                    pressed = GetUsedController().IsTouchpadPressed;
                     break;
                 }
                 case ViveButton.TouchpadTouch:
                 {
-                    pressed = CurvedUIInputModule.Right.IsTouchpadTouched;
+                    pressed = GetUsedController().IsTouchpadTouched;
                     break;
                 }
                 case ViveButton.Grip:
                 {
-                    pressed = CurvedUIInputModule.Right.IsGripPressed;
+                    pressed = GetUsedController().IsGripPressed;
                     break;
                 }
                 case ViveButton.Menu:
                 {
-                    pressed = CurvedUIInputModule.Right.IsApplicationMenuPressed;
+                    pressed = GetUsedController().IsApplicationMenuPressed;
                     break;
                 }
             }
 
             this.GetComponentInChildren<Image>().color = pressed ? ActiveColor : InActiveColor;
+        }
+
+        CurvedUIViveController GetUsedController()
+        {
+            return CurvedUIInputModule.Instance.UsedHand == CurvedUIInputModule.Hand.Right ? CurvedUIInputModule.Right : CurvedUIInputModule.Left;
         }
 #endif
     }
