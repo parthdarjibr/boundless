@@ -1,6 +1,4 @@
-﻿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
-
-Shader "Custom/UIScreenBlend"
+﻿Shader "Custom/UIScreenBlend"
 {
 	Properties
 	{
@@ -78,7 +76,7 @@ Shader "Custom/UIScreenBlend"
 			{
 				VertexOutput vertexOutput;
 				
-				vertexOutput.vertex = UnityObjectToClipPos(vertexInput.vertex);
+				vertexOutput.vertex = mul(UNITY_MATRIX_MVP, vertexInput.vertex);
 				vertexOutput.screenPos = vertexOutput.vertex;	
 				vertexOutput.texcoord = vertexInput.texcoord;
 				vertexOutput.color = vertexInput.color * _Color;

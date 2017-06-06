@@ -18,6 +18,9 @@ namespace CurvedUI
 		[SerializeField]
         float rotationMargin = 25;
 
+        [SerializeField]
+        bool runInEditorOnly = true;
+
         // Use this for initialization
         void Awake()
         {
@@ -29,9 +32,13 @@ namespace CurvedUI
         // Update is called once per frame
         void Update()
         {
-            CameraObject.localEulerAngles = new Vector3(Input.mousePosition.y.Remap(0, Screen.height, rotationMargin, -rotationMargin),
-                                                        Input.mousePosition.x.Remap(0, Screen.width, -rotationMargin, rotationMargin),
-                                                           0);
+            if((Application.isEditor || !runInEditorOnly))// && !UnityEngine.VR.VRSettings.enabled)
+            {
+                CameraObject.localEulerAngles = new Vector3(Input.mousePosition.y.Remap(0, Screen.height, rotationMargin, -rotationMargin),
+                                                       Input.mousePosition.x.Remap(0, Screen.width, -rotationMargin, rotationMargin),
+                                                          0);
+            }
+            
         }
         #endif
     }

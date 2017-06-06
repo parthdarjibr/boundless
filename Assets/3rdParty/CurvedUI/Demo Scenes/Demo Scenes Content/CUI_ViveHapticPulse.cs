@@ -9,6 +9,11 @@ namespace CurvedUI {
         float PulseStrength;
 #pragma warning restore 414
 
+        void Start()
+        {
+            PulseStrength = 1;
+        }
+
         public void SetPulseStrength(float newStr)
         {
             PulseStrength = Mathf.Clamp(newStr, 0, 1);
@@ -17,7 +22,7 @@ namespace CurvedUI {
         public void TriggerPulse() 
         {
 #if CURVEDUI_VIVE
-            CurvedUIInputModule.Right.TriggerHapticPulse(1, (ushort)(PulseStrength * 1500));
+            CurvedUIInputModule.Right.TriggerHapticPulse(1, (ushort)(PulseStrength * 3000));
 			#endif 
         }
     }

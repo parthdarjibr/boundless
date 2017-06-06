@@ -13,8 +13,9 @@ namespace CurvedUI
     {
 
         Vector2 savedVector;
+        bool isDragged = false;
 
- 
+
         public void OnBeginDrag(PointerEventData data)
         {
             Debug.Log("OnBeginDrag");
@@ -22,11 +23,24 @@ namespace CurvedUI
             RaycastPosition(out newPos);
 
             //save distance from click point to object center to allow for precise dragging
-            savedVector = new Vector2((transform as RectTransform).localPosition.x, (transform as RectTransform).localPosition.y)  - newPos;
+            savedVector = new Vector2((transform as RectTransform).localPosition.x, (transform as RectTransform).localPosition.y) - newPos;
+
+            isDragged = true;
         }
 
-        public void OnDrag(PointerEventData data)
+        public void OnDrag(PointerEventData data)  {  }
+
+        public void OnEndDrag(PointerEventData data)
         {
+            Debug.Log("OnEndDrag");
+
+            isDragged = false;
+        }
+
+        void LateUpdate()
+        {
+            if (!isDragged) return;
+
             //drag the transform along the mouse. We use raycast to determine its position on curved canvas.
             Vector2 newPos = Vector2.zero;
 
@@ -36,11 +50,6 @@ namespace CurvedUI
             (transform as RectTransform).localPosition = newPos + savedVector;
         }
 
-        public void OnEndDrag(PointerEventData data)
-        {
-            Debug.Log("OnEndDrag");
-        }
-    
 
         void RaycastPosition(out Vector2 newPos)
         {

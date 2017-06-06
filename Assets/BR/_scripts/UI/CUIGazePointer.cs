@@ -38,10 +38,10 @@ public class CUIGazePointer : MonoBehaviour
 	/// </summary>
 	public bool hidden { get; private set; }
 
-	/// <summary>
-	/// Current scale applied to pointer
-	/// </summary>
-	public float currentScale { get; private set; }
+    /// <summary>
+    /// Current scale applied to pointer
+    /// </summary>
+    public float currentScale { get; private set; }
 
 	/// <summary>
 	/// Current depth of pointer from camera

@@ -354,10 +354,11 @@ namespace CurvedUI
 				if (eventData.IsPointerMoving() && eventData.pointerDrag != null && !eventData.dragging
 					&& ShouldStartDrag(eventData.pressPosition, eventData.position, EventSystem.current.pixelDragThreshold, eventData.useDragThreshold))
 				{
-					// ExecuteEvents.Execute(eventData.pointerDrag, eventData, ExecuteEvents.beginDragHandler);
-					ScrollManager sm = eventData.pointerDrag.GetComponent<ScrollManager> ();
+                    
+                    // ExecuteEvents.Execute(eventData.pointerDrag, eventData, ExecuteEvents.beginDragHandler);
+                    ScrollManager sm = eventData.pointerDrag.GetComponent<ScrollManager> ();
 					if (sm != null) {
-						eventData.dragging = true;
+						eventData.dragging = false;
 
 						// Check for pointer press
 						if (eventData.pointerPress != eventData.pointerDrag) {
@@ -369,7 +370,25 @@ namespace CurvedUI
 						}
 						eventData.pointerDrag = null;
 						sm.shouldScroll = true;
-					}
+					} else
+                    {
+                        // Other scrolling
+                        eventData.dragging = true;
+                        ExecuteEvents.Execute(eventData.pointerDrag, eventData, ExecuteEvents.beginDragHandler);
+
+                        if (eventData.dragging && eventData.pointerDrag != null)
+                        {
+                            if (eventData.pointerPress != eventData.pointerDrag)
+                            {
+                                ExecuteEvents.Execute(eventData.pointerPress, eventData, ExecuteEvents.pointerUpHandler);
+
+                                eventData.eligibleForClick = false;
+                                eventData.pointerPress = null;
+                                eventData.rawPointerPress = null;
+                            }
+                            ExecuteEvents.Execute(eventData.pointerDrag, eventData, ExecuteEvents.dragHandler);
+                        }
+                    }
 				}
 			} 
         }
