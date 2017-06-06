@@ -21,7 +21,7 @@ public class VideoScrollRectItemsAdapter : GridAdapter<VideoDetailParams, VideoI
 		var model = videos [viewHolder.itemIndex].node;
 
 		viewHolder.tvVideoName.transform.parent.gameObject.SetActive (true);
-		viewHolder.tvVideoName.text = model.name;
+		viewHolder.tvVideoName.text = model.name.Replace(" ", "\n");
 
 		int itemIndexAtRequest = viewHolder.itemIndex;
 		string requestedPath = model.thumbnailUrl;

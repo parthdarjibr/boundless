@@ -312,16 +312,19 @@ namespace BR.App
 
         public void OnPointerExit()
         {
-            ExecuteEvents.Execute(btnNext.gameObject, new PointerEventData(EventSystem.current), ExecuteEvents.pointerExitHandler);
-            if (shouldAutoHide)
+            if (!isScrubbing)
             {
-                PerformForcedFadeOut(0, () =>
+                ExecuteEvents.Execute(btnNext.gameObject, new PointerEventData(EventSystem.current), ExecuteEvents.pointerExitHandler);
+                if (shouldAutoHide)
                 {
-                    shouldReposition = true;
+                    PerformForcedFadeOut(0, () =>
+                    {
+                        shouldReposition = true;
                     // Disable the collider on the menu
                     GetComponent<MeshCollider>().enabled = false;
                     // isShowing = false;
                 });
+                }
             }
             /*
 			menuPanelObject.GetComponent<CanvasGroupTransition> ().closeAnimation (() => {
@@ -360,33 +363,45 @@ namespace BR.App
 
         // Seeking event handlers
         bool _wasPlayingOnScrub = false;
+        bool isScrubbing = false;
         public void OnSeekbarValueChanged(float val)
         {
+            Debug.Log("Change");
             // Function called when seekbar value changed
             txtCurrentTime.text = TruncateMsToMin(val * currentVideoPlayer.mediaPlayer.Info.GetDurationMs());
         }
 
         public void SeekbarPointerUp()
         {
-            if (_wasPlayingOnScrub)
-            {
+            // if (_wasPlayingOnScrub)
+            // {
                 // Seek to the position
-                float scrubTo = videoSeekbar.value * currentVideoPlayer.mediaPlayer.Info.GetDurationMs();
-                currentVideoPlayer.mediaPlayer.Control.Seek(scrubTo);
+            float scrubTo = videoSeekbar.value * currentVideoPlayer.mediaPlayer.Info.GetDurationMs();
 
-                currentVideoPlayer.mediaPlayer.Control.Play();
-                _wasPlayingOnScrub = false;
 
-                // Update the texts
-                txtBeginTime.text = txtCurrentTime.text;
+            currentVideoPlayer.mediaPlayer.Control.Seek(scrubTo);
 
-                // Deactivate current time text
-                txtCurrentTime.gameObject.SetActive(false);
-            }
+            // currentVideoPlayer.mediaPlayer.Control.Play();
+            StartCoroutine(PlayVideoAfterScrub());
+
+            _wasPlayingOnScrub = false;
+
+            // Update the texts
+            txtBeginTime.text = txtCurrentTime.text;
+
+            // Deactivate current time text
+            txtCurrentTime.gameObject.SetActive(false);
+
+            isScrubbing = false;
+
+            // }
         }
 
         public void SeekbarPointerDown()
         {
+            // Change the flag
+            isScrubbing = true;
+
             // Enable the current time text
             txtCurrentTime.gameObject.SetActive(true);
 
@@ -394,11 +409,16 @@ namespace BR.App
             shouldDisappear = false;
 
             // Change beginning and end times
-            _wasPlayingOnScrub = currentVideoPlayer.mediaPlayer.Control.IsPlaying();
-            if (_wasPlayingOnScrub)
-            {
-                currentVideoPlayer.mediaPlayer.Control.Pause();
-            }
+            // _wasPlayingOnScrub = currentVideoPlayer.mediaPlayer.Control.IsPlaying();
+            // if (_wasPlayingOnScrub)
+            // {
+            //     currentVideoPlayer.mediaPlayer.Control.Pause();
+            // }
+            currentVideoPlayer.mediaPlayer.Control.Pause();
+
+            // Change play button
+            btnPlay.spriteState = currentVideoPlayer.playState;
+            btnPlay.GetComponent<Image>().sprite = currentVideoPlayer.playIdle;
         }
 
         #endregion
@@ -520,6 +540,20 @@ namespace BR.App
             return answer;
         }
 
+
+        IEnumerator PlayVideoAfterScrub()
+        {
+            RenderHeads.Media.AVProVideo.MediaPlayer mp = currentVideoPlayer.mediaPlayer;
+            while(mp != null && mp.TextureProducer != null && mp.TextureProducer.GetTextureFrameCount() <= 0)
+            {
+                yield return null;
+            }
+            currentVideoPlayer.mediaPlayer.Control.Play();
+
+            // Change play button
+            btnPlay.spriteState = currentVideoPlayer.pauseState;
+            btnPlay.GetComponent<Image>().sprite = currentVideoPlayer.pauseIdle;
+        }
         #endregion
     }
 }

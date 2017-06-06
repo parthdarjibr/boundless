@@ -268,7 +268,7 @@ public class CUIGazePointer : MonoBehaviour
 	}
 
 	// Methods to show/hide the loading indicator
-	public void ShowLoadingReticle(bool isWarning = false, string loadingText = "Buffering...") {
+	public void ShowLoadingReticle(bool isWarning = false, string loadingText = "Loading...") {
 		// Change the hiding property
 		hideByDefault = false;
 

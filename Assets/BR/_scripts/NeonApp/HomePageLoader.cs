@@ -198,6 +198,9 @@ namespace BR.App {
                     categoryButtons[2].onClick.AddListener(delegate{ CategoryClicked(categoryButtons[2]); });
                     categoryButtons[3].onClick.AddListener(delegate{ CategoryClicked(categoryButtons[3]); });
 
+                    // Disable the all category button
+                    categoryButtons[0].GetComponent<CategoryButtonAnimator>().SetInteractivity(false);
+
                     /*
 					// Setup category buttons
 					// Setup the category buttons

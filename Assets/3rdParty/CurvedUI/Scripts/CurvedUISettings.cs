@@ -349,7 +349,7 @@ namespace CurvedUI
         /// Returns the true if ray hits the CurvedCanvas.
         /// Outputs intersection point in flat canvas space. 
         /// </returns>
-        public bool RaycastToCanvasSpace(Ray ray, out Vector2 o_positionOnCanvas)
+        public bool RaycastToCanvasSpace(Ray ray, out Vector2 o_positionOnCanvas, bool outputInCanvasSpace = true)
         {
             CurvedUIRaycaster caster = this.GetComponent<CurvedUIRaycaster>();
             o_positionOnCanvas = Vector2.zero;
@@ -358,19 +358,19 @@ namespace CurvedUI
             {
                 case CurvedUISettings.CurvedUIShape.CYLINDER:
                 {
-                    return caster.RaycastToCyllinderCanvas(ray, out o_positionOnCanvas, true);
+                    return caster.RaycastToCyllinderCanvas(ray, out o_positionOnCanvas, outputInCanvasSpace);
                 }
                 case CurvedUISettings.CurvedUIShape.CYLINDER_VERTICAL:
                 {
-                    return caster.RaycastToCyllinderVerticalCanvas(ray, out o_positionOnCanvas, true);
+                    return caster.RaycastToCyllinderVerticalCanvas(ray, out o_positionOnCanvas, outputInCanvasSpace);
                 }
                 case CurvedUISettings.CurvedUIShape.RING:
                 {
-                    return caster.RaycastToRingCanvas(ray, out o_positionOnCanvas, true);
+                    return caster.RaycastToRingCanvas(ray, out o_positionOnCanvas, outputInCanvasSpace);
                 }
                 case CurvedUISettings.CurvedUIShape.SPHERE:
                 {
-                    return caster.RaycastToSphereCanvas(ray, out o_positionOnCanvas, true);
+                    return caster.RaycastToSphereCanvas(ray, out o_positionOnCanvas, outputInCanvasSpace);
                 }
                 default:
                 {
