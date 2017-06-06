@@ -13,7 +13,6 @@ using System.Collections.Generic;
 using MA;
 using System;
 using UnityEngine.EventSystems;
-using RenderHeads.Media.AVProVideo;
 
 namespace BR.App
 {
@@ -375,8 +374,7 @@ namespace BR.App
                 float scrubTo = videoSeekbar.value * currentVideoPlayer.mediaPlayer.Info.GetDurationMs();
                 currentVideoPlayer.mediaPlayer.Control.Seek(scrubTo);
 
-                // currentVideoPlayer.mediaPlayer.Control.Play();
-                StartCoroutine(StartPlayback());
+                currentVideoPlayer.mediaPlayer.Control.Play();
                 _wasPlayingOnScrub = false;
 
                 // Update the texts
@@ -522,15 +520,6 @@ namespace BR.App
             return answer;
         }
 
-        private IEnumerator StartPlayback()
-        {
-            // return (mp != null && mp.TextureProducer != null && mp.TextureProducer.GetTextureFrameCount() <= 0);
-            MediaPlayer mp = currentVideoPlayer.mediaPlayer;
-            while(mp!= null && mp.TextureProducer != null && mp.TextureProducer.GetTextureFrameCount() <= 0)
-                yield return null;
-
-            mp.Control.Play();
-        }
         #endregion
     }
 }
