@@ -243,9 +243,7 @@ namespace BR.App
                     //videoPlayerMenu.ShowMenuForced (false);
                     break;
                 case MediaPlayerEvent.EventType.Stalled:
-                    // Debug.Log ("Stalled");
                     CUIGazePointer.instance.ShowLoadingReticle();
-                    //videoPlayerMenu.ShowMenuForced (true);
                     break;
                 case MediaPlayerEvent.EventType.Error:
                     if (numberOfTries < 3)

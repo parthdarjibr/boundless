@@ -59,6 +59,11 @@ namespace BR.App {
 			}
 		}
 
+        private void Update()
+        {
+            isNetworkAvailable = (Application.internetReachability == NetworkReachability.ReachableViaLocalAreaNetwork);
+        }
+
         private void OnDestroy()
         {
             instance = null;
@@ -113,6 +118,14 @@ namespace BR.App {
 
 		public void ShowNetworkError() {
 			ErrorDetail ed = new ErrorDetail();
+            if(string.IsNullOrEmpty(errorTitle))
+            {
+                errorTitle = "Wifi connection required.";
+            }
+            if(string.IsNullOrEmpty(errorDescription))
+            {
+                errorDescription = "A wifi connection is required to use the app.";
+            }
 			ed.SetErrorTitle (errorTitle);
 			ed.SetErrorDescription (errorDescription);
 
