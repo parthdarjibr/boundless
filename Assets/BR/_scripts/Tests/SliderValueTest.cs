@@ -35,12 +35,9 @@ public class SliderValueTest : MonoBehaviour, IPointerUpHandler, IPointerEnterHa
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        Vector2 raycastPos;
-        if (curvedCanvas.RaycastToCanvasSpace(Camera.main.ScreenPointToRay(new Vector2(Screen.width / 2.0f, Screen.height / 2.0f)), out raycastPos)) 
-        {
-            Debug.Log("Raycast Pos: " + raycastPos);
-            Debug.Log((transform as RectTransform).rect);
-        }
+        RectTransform rt = transform as RectTransform;
+        Debug.Log(rt.rect.width / 2 * rt.lossyScale.x);
+        Debug.Log(CUIGazePointer.instance.transform.position.x);
 
     }
     #endregion

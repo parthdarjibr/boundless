@@ -31,6 +31,9 @@ namespace frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter
                 root.gameObject.SetActive(true);
             this.itemIndex = itemIndex;
 
+            // Add curved ui vertex effect
+            root.gameObject.AddComponent<CurvedUI.CurvedUIVertexEffect>();
+
             if (callCollectViews)
                 CollectViews();
         }
