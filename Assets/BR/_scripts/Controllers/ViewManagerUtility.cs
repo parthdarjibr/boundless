@@ -77,61 +77,87 @@ namespace BR.App {
 		[SerializeField] private TextAsset[] JSONFiles;
 		private Stack ViewObjectStack;
 
-		#endregion
+        #endregion
 
-		#region PUBLIC METHODS
+        #region PUBLIC METHODS
 
-		/// <summary>
-		/// Setups the influencer view. Loads both canvases in the influencer object
-		/// </summary>
-		/// <param name="influencer">Influencer.</param>
+        /// <summary>
+        /// Setups the influencer view. Loads both canvases in the influencer object
+        /// </summary>
+        /// <param name="influencer">Influencer.</param>
+        bool influencerErrorShown = false;
 		public void SetupInfluencerView(InfluencerDetail influencer) {
 			if (influencerPrefab == null) {
 				return;
 			}
-			
-            if(!ConnectionManager.Instance().isNetworkAvailable)
+
+            //if (!ConnectionManager.Instance().isNetworkAvailable)
+            if(!(Application.internetReachability == NetworkReachability.ReachableViaLocalAreaNetwork))
             {
-                ConnectionManager.Instance().ShowNetworkError();
+                // Setup a new errordetail
+                ErrorDetail ed = new ErrorDetail();
+                ed.SetErrorTitle("Wifi Connection Required");
+                ed.SetErrorDescription("A wifi connection is required to browse Boundless. Please check whether you are connected to wifi and try again");
+
+
+                // Associate this error detail with an action
+                // Add a reset button to the panel
+                ed.AddToDictionary(ErrorDetail.ResponseType.RETRY, new UnityEngine.Events.UnityAction(delegate
+                {
+                    SetupInfluencerView(influencer);
+                }));
+
+
+                ed.AddToDictionary(ErrorDetail.ResponseType.EXIT, new UnityEngine.Events.UnityAction(delegate
+                {
+
+                    ViewManagerUtility.Instance().BackButtonPressed();
+                    OVRManager.PlatformUIGlobalMenu();
+                }));
+                ConnectionManager.Instance().ShowNetworkError(ed);
                 return;
             }
+            else
+            {
+                // The view can be instantiated only on the UI canvas
+                GoToViewObject(ViewObject.ObjectType.UI);
 
-			// The view can be instantiated only on the UI canvas
-			GoToViewObject(ViewObject.ObjectType.UI);
+                // Check if the last canvas on the canvas is an influencer object
+                CanvasObject c = GetLastViewObject().canvasStack.Peek() as CanvasObject;
 
-			// Check if the last canvas on the canvas is an influencer object
-			CanvasObject c = GetLastViewObject ().canvasStack.Peek () as CanvasObject;
+                CanvasObject influencerObject;
+                if (c.canvasType == CanvasObject.CanvasType.INFLUENCER)
+                {
+                    // Debug.Log ("influencer canvas is the last canvas");
+                    influencerObject = c;
 
-			CanvasObject influencerObject;
-			if (c.canvasType == CanvasObject.CanvasType.INFLUENCER) {
-				// Debug.Log ("influencer canvas is the last canvas");
-				influencerObject = c;
+                    // If the influencer panel is already loaded, delete all videos from the list
+                    influencerObject.GetComponentInChildren<VideoPanelLoader>().RemoveAllVideos();
 
-				// If the influencer panel is already loaded, delete all videos from the list
-				influencerObject.GetComponentInChildren<VideoPanelLoader> ().RemoveAllVideos ();
+                    // Remove the playlist
+                    VideoPlaylistManager.Instance().RemoveLastList();
+                }
+                else
+                {
 
-				// Remove the playlist
-				VideoPlaylistManager.Instance ().RemoveLastList ();
-			} else {
-				
-				// Instantiate the Object
-				influencerObject = (CanvasObject)Instantiate (influencerPrefab, UICanvas.transform);
+                    // Instantiate the Object
+                    influencerObject = (CanvasObject)Instantiate(influencerPrefab, UICanvas.transform);
 
-				// Set the position of the object
-				(influencerObject.transform as RectTransform).sizeDelta = Vector3.zero;
+                    // Set the position of the object
+                    (influencerObject.transform as RectTransform).sizeDelta = Vector3.zero;
 
-				// Set scale of the object
-				// influencerObject.transform.localScale = Vector3.one;
+                    // Set scale of the object
+                    // influencerObject.transform.localScale = Vector3.one;
 
-				DoBasicSetup (influencerObject);
+                    DoBasicSetup(influencerObject);
 
-				// Add the object to stack
-				AddCanvasToView (influencerObject, ViewObject.ObjectType.UI);
-			}
+                    // Add the object to stack
+                    AddCanvasToView(influencerObject, ViewObject.ObjectType.UI);
+                }
 
-			// influencerObject.GetComponent<InfluencerPageLoader> ().SetupInfluencerPage (influencer);
-			StartCoroutine(influencerObject.GetComponent<InfluencerPageLoader> ().SetupInfluencerPageOptimized (influencer));
-			
+                // influencerObject.GetComponent<InfluencerPageLoader> ().SetupInfluencerPage (influencer);
+                StartCoroutine(influencerObject.GetComponent<InfluencerPageLoader>().SetupInfluencerPageOptimized(influencer));
+            }
 			/*
 			// Set the influencer profile view
 			// influencerObject.GetComponentInChildren<InfluencerProfileLoader>().SetupInfluencerProfile(influencer);
@@ -139,11 +165,16 @@ namespace BR.App {
 			*/
 		}
 
+        public void SetupErrorView(ErrorDetail ed)
+        {
+            SetupErrorView(ed, Vector3.zero, Quaternion.identity);
+        }
+
 		/// <summary>
 		/// Setups the error view.
 		/// </summary>
 		/// <param name="ed">Error details</param>
-		public void SetupErrorView(ErrorDetail ed) {
+		public void SetupErrorView(ErrorDetail ed, Vector3 oldPos, Quaternion oldRot) {
 			if (ed == null)
 				return;
 
@@ -158,14 +189,23 @@ namespace BR.App {
 
 				// Instantiate the object
 				CanvasObject errorObject = (CanvasObject)Instantiate(errorPrefab);
-				float posZ;
-				Debug.Log (v.canvasStack.Count);
-				posZ = BaseDistance - (v.canvasStack.Count + 1) * CanvasDistance;
-			
 
-				// Change position of the menu to in front of the camera
-				errorObject.transform.localPosition = -Camera.main.transform.forward * posZ;
-				errorObject.transform.rotation = Quaternion.LookRotation (errorObject.transform.position - Camera.main.transform.position);
+                // Get a new pos only if asked for
+                if (oldPos == Vector3.zero)
+                {
+                    float posZ;
+                    Debug.Log(v.canvasStack.Count);
+                    posZ = BaseDistance - (v.canvasStack.Count + 1) * CanvasDistance;
+
+                    // Change position of the menu to in front of the camera
+                    errorObject.transform.localPosition = -Camera.main.transform.forward * posZ;
+                    errorObject.transform.rotation = Quaternion.LookRotation(errorObject.transform.position - Camera.main.transform.position);
+                } else
+                {
+                    // Use the old pos
+                    errorObject.transform.localPosition = oldPos;
+                    errorObject.transform.rotation = oldRot;
+                }
 
 				// Set the camera for this canvas
 				errorObject.GetCanvas ().worldCamera = eventCamera;
@@ -582,7 +622,6 @@ namespace BR.App {
 
 			// Open this menu
 			previousObject.GetMenu ().openNext (obj.GetMenu ());
-
 			// Push new object to the end of the stack
 			v.canvasStack.Push(obj);
 		}

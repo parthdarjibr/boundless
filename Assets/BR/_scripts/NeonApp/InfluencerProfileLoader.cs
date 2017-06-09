@@ -18,7 +18,7 @@ namespace BR.App {
 	public class InfluencerProfileLoader : MonoBehaviour
 	{
 
-		public Image infPicture;
+		public Image infPicture, infProgressBar;
 		// public TextMeshPro tvInfluencerName, tvInfluencerHandle, tvBio;
 		public Text tvInfluencerName, tvInfluencerHandle, tvBio;
 
@@ -41,7 +41,7 @@ namespace BR.App {
 			// Create a new download queue and add this object to that queue
 			DownloadQueue infPicqueue = new DownloadQueue ();
 
-			TextureDownloadObject downloadObject = new TextureDownloadObject(influencer.picUrl, infPicture, 0);
+			TextureDownloadObject downloadObject = new TextureDownloadObject(influencer.picUrl, infPicture, infProgressBar, 0);
 			infPicqueue.queue.Enqueue (downloadObject);
 
 			// Start download and add the queue to the download list

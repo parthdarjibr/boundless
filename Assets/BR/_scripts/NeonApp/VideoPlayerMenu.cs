@@ -366,7 +366,6 @@ namespace BR.App
         bool isScrubbing = false;
         public void OnSeekbarValueChanged(float val)
         {
-            Debug.Log("Change");
             // Function called when seekbar value changed
             txtCurrentTime.text = TruncateMsToMin(val * currentVideoPlayer.mediaPlayer.Info.GetDurationMs());
         }

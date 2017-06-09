@@ -77,168 +77,168 @@ namespace CurvedUI
             switch (CurvedUIInputModule.Controller)
             {
                 case CurvedUIInputModule.CurvedUIController.MOUSE:
-                {
-                    // Get a ray from the camera through the point on the screen - used for mouse input
-                    ray3D = worldCamera.ScreenPointToRay(eventData.position);
-                    break;
-                }
-                case CurvedUIInputModule.CurvedUIController.GAZE:
-                {
-                    //get a ray from the center of world camera. used for gaze input
-                    ray3D = new Ray(worldCamera.transform.position, worldCamera.transform.forward);
-
-                    bool selectableUnderGaze = false;
-
-                    //find if our selected object is still under gaze
-                    foreach (GameObject go in eventData.hovered)
                     {
-                        if (go == eventData.selectedObject)
-                        {
-                            selectableUnderGaze = true;
-                            break;
-                        }
+                        // Get a ray from the camera through the point on the screen - used for mouse input
+                        ray3D = worldCamera.ScreenPointToRay(eventData.position);
+                        break;
                     }
-
-                    //deselect if its not
-                    if (!selectableUnderGaze)
-                        eventData.selectedObject = null;
-
-                    foreach (GameObject go in eventData.hovered)
+                case CurvedUIInputModule.CurvedUIController.GAZE:
                     {
-                        if (go == null)
-                            continue;
+                        //get a ray from the center of world camera. used for gaze input
+                        ray3D = new Ray(worldCamera.transform.position, worldCamera.transform.forward);
 
-                        Graphic gph = go.GetComponent<Graphic>();
+                        bool selectableUnderGaze = false;
 
-                        //go through only go that can be selected and are drawn by the canvas
+                        //find if our selected object is still under gaze
+                        foreach (GameObject go in eventData.hovered)
+                        {
+                            if (go == eventData.selectedObject)
+                            {
+                                selectableUnderGaze = true;
+                                break;
+                            }
+                        }
+
+                        //deselect if its not
+                        if (!selectableUnderGaze)
+                            eventData.selectedObject = null;
+
+                        foreach (GameObject go in eventData.hovered)
+                        {
+                            if (go == null)
+                                continue;
+
+                            Graphic gph = go.GetComponent<Graphic>();
+
+                            //go through only go that can be selected and are drawn by the canvas
 #if UNITY_5_1
                     if (go.GetComponent<Selectable>() != null && gph != null && gph.depth != -1)
 #else
-                        if (go.GetComponent<Selectable>() != null && gph != null && gph.depth != -1 && gph.raycastTarget)
+                            if (go.GetComponent<Selectable>() != null && gph != null && gph.depth != -1 && gph.raycastTarget)
 #endif
-                        {
-                            if (eventData.selectedObject != go)
-                                eventData.selectedObject = go;
+                            {
+                                if (eventData.selectedObject != go)
+                                    eventData.selectedObject = go;
 
-                            break;
+                                break;
+                            }
                         }
+
+                        // //Test for selected object being dragged and initialize dragging, if needed.
+                        // //We do this here to trick unity's StandAloneInputModule into thinking we used a touch or mouse to do it.
+                        // if (eventData.IsPointerMoving() && eventData.pointerDrag != null
+                        //     && !eventData.dragging
+                        //     && ShouldStartDrag(eventData.pressPosition, eventData.position, EventSystem.current.pixelDragThreshold, eventData.useDragThreshold))
+                        // {
+                        //     ExecuteEvents.Execute(eventData.pointerDrag, eventData, ExecuteEvents.beginDragHandler);
+                        //     eventData.dragging = true;
+                        // }
+
+                        //					// Experimental - Execute click after hovering gaze on an object for few seconds.
+                        //					if(lastSelectedObject != eventData.selectedObject){
+                        //						lastSelectedObject = eventData.selectedObject;
+                        //						lastSelectedChangedTime = Time.time;
+                        //						lastSelectedClicked = false;
+                        //						Debug.Log("last selected changed");
+                        //
+                        //					}
+                        //					if(Time.time - lastSelectedChangedTime > gazeClickTime && !lastSelectedClicked){
+                        //						lastSelectedClicked = true;
+                        //						ExecuteEvents.Execute(eventData.selectedObject, eventData, ExecuteEvents.pointerClickHandler);
+                        //						Debug.Log("gaze click");
+                        //					}
+                        //
+
+                        break;
                     }
+                case CurvedUIInputModule.CurvedUIController.GVRCONTROLLER:
+                    {
+                        //get a ray from the center of world camera. used for gaze input
+                        // ray3D = new Ray(worldCamera.transform.position, worldCamera.transform.forward);
+                        ray3D = CurvedUIInputModule.CustomControllerRay;
 
-                    // //Test for selected object being dragged and initialize dragging, if needed.
-                    // //We do this here to trick unity's StandAloneInputModule into thinking we used a touch or mouse to do it.
-                    // if (eventData.IsPointerMoving() && eventData.pointerDrag != null
-                    //     && !eventData.dragging
-                    //     && ShouldStartDrag(eventData.pressPosition, eventData.position, EventSystem.current.pixelDragThreshold, eventData.useDragThreshold))
-                    // {
-                    //     ExecuteEvents.Execute(eventData.pointerDrag, eventData, ExecuteEvents.beginDragHandler);
-                    //     eventData.dragging = true;
-                    // }
+                        bool selectableUnderGaze = false;
 
-//					// Experimental - Execute click after hovering gaze on an object for few seconds.
-//					if(lastSelectedObject != eventData.selectedObject){
-//						lastSelectedObject = eventData.selectedObject;
-//						lastSelectedChangedTime = Time.time;
-//						lastSelectedClicked = false;
-//						Debug.Log("last selected changed");
-//
-//					}
-//					if(Time.time - lastSelectedChangedTime > gazeClickTime && !lastSelectedClicked){
-//						lastSelectedClicked = true;
-//						ExecuteEvents.Execute(eventData.selectedObject, eventData, ExecuteEvents.pointerClickHandler);
-//						Debug.Log("gaze click");
-//					}
-//
+                        //find if our selected object is still under gaze
+                        foreach (GameObject go in eventData.hovered)
+                        {
+                            if (go == eventData.selectedObject)
+                            {
+                                selectableUnderGaze = true;
+                                break;
+                            }
+                        }
 
-                    break;
-                }
+                        //deselect if its not
+                        if (!selectableUnderGaze)
+                            eventData.selectedObject = null;
+
+                        foreach (GameObject go in eventData.hovered)
+                        {
+                            if (go == null)
+                                continue;
+
+                            Graphic gph = go.GetComponent<Graphic>();
+
+                            //go through only go that can be selected and are drawn by the canvas
+#if UNITY_5_1
+						if (go.GetComponent<Selectable>() != null && gph != null && gph.depth != -1)
+#else
+                            if (go.GetComponent<Selectable>() != null && gph != null && gph.depth != -1 && gph.raycastTarget)
+#endif
+                            {
+                                if (eventData.selectedObject != go)
+                                    eventData.selectedObject = go;
+
+                                break;
+                            }
+                        }
+                        break;
+                    }
                 case CurvedUIInputModule.CurvedUIController.WORLD_MOUSE:
-                {
-                    // Get a ray set in CustromControllerRay property
-                    ray3D = new Ray(worldCamera.transform.position, (mySettings.CanvasToCurvedCanvas(CurvedUIInputModule.Instance.WorldSpaceMouseInCanvasSpace) - myCanvas.worldCamera.transform.position));
-                    break;
-                }
+                    {
+                        // Get a ray set in CustromControllerRay property
+                        ray3D = new Ray(worldCamera.transform.position, (mySettings.CanvasToCurvedCanvas(CurvedUIInputModule.Instance.WorldSpaceMouseInCanvasSpace) - myCanvas.worldCamera.transform.position));
+                        break;
+                    }
                 case CurvedUIInputModule.CurvedUIController.VIVE:
-                {
-                    // Get a ray from right controller.
+                    {
+                        // Get a ray from right controller.
 #if CURVEDUI_VIVE
                     ray3D = new Ray((eventData as CurvedUIPointerEventData).Controller.transform.position, (eventData as CurvedUIPointerEventData).Controller.transform.forward);
 
                     break;
 #else
-                    goto case CurvedUIInputModule.CurvedUIController.CUSTOM_RAY;
+                        goto case CurvedUIInputModule.CurvedUIController.CUSTOM_RAY;
 #endif
-                }
+                    }
                 case CurvedUIInputModule.CurvedUIController.OCULUS_TOUCH:
-                {
-                    goto case CurvedUIInputModule.CurvedUIController.CUSTOM_RAY;
-                }
+                    {
+                        goto case CurvedUIInputModule.CurvedUIController.CUSTOM_RAY;
+                    }
                 case CurvedUIInputModule.CurvedUIController.CUSTOM_RAY:
-                {
-                    // Get a ray set in CustromControllerRay property
-                    ray3D = CurvedUIInputModule.CustomControllerRay;
-                    ProcessMove(eventData);
-                    break;
-                }
+                    {
+                        // Get a ray set in CustromControllerRay property
+                        ray3D = CurvedUIInputModule.CustomControllerRay;
+                        ProcessMove(eventData);
+                        break;
+                    }
                 case CurvedUIInputModule.CurvedUIController.DAYDREAM:
-                {
-                    goto case CurvedUIInputModule.CurvedUIController.CUSTOM_RAY;
-                }
-				case CurvedUIInputModule.CurvedUIController.GOOGLEVR:
-				{
-					goto case CurvedUIInputModule.CurvedUIController.GAZE;
-				}
-				case CurvedUIInputModule.CurvedUIController.GVRCONTROLLER:
-				{
-					//get a ray from the center of world camera. used for gaze input
-					// ray3D = new Ray(worldCamera.transform.position, worldCamera.transform.forward);
-					ray3D = CurvedUIInputModule.CustomControllerRay;
-
-					bool selectableUnderGaze = false;
-
-					//find if our selected object is still under gaze
-					foreach (GameObject go in eventData.hovered)
-					{
-						if (go == eventData.selectedObject)
-						{
-							selectableUnderGaze = true;
-							break;
-						}
-					}
-
-					//deselect if its not
-					if (!selectableUnderGaze)
-						eventData.selectedObject = null;
-
-					foreach (GameObject go in eventData.hovered)
-					{
-						if (go == null)
-							continue;
-
-						Graphic gph = go.GetComponent<Graphic>();
-
-						//go through only go that can be selected and are drawn by the canvas
-						#if UNITY_5_1
-						if (go.GetComponent<Selectable>() != null && gph != null && gph.depth != -1)
-						#else
-						if (go.GetComponent<Selectable>() != null && gph != null && gph.depth != -1 && gph.raycastTarget)
-						#endif
-						{
-							if (eventData.selectedObject != go)
-								eventData.selectedObject = go;
-
-							break;
-						}
-					}
-					break;
-				}
+                    {
+                        goto case CurvedUIInputModule.CurvedUIController.CUSTOM_RAY;
+                    }
+                case CurvedUIInputModule.CurvedUIController.GOOGLEVR:
+                    {
+                        goto case CurvedUIInputModule.CurvedUIController.GAZE;
+                    }
                 default:
-                {
-                    ray3D = new Ray();
-                    break;
-                }
+                    {
+                        ray3D = new Ray();
+                        break;
+                    }
             }
 
-           
+
             //copy eventdata to be used by this
             PointerEventData newEventData = new PointerEventData(EventSystem.current);
             if (!overrideEventData) {
@@ -261,7 +261,7 @@ namespace CurvedUI
                 newEventData.dragging = eventData.dragging;
                 newEventData.button = eventData.button;
             }
-              
+
 
 
             if (mySettings.Angle != 0 && mySettings.enabled)
@@ -279,25 +279,25 @@ namespace CurvedUI
                 {
                     //find if we hit anything, if not, do nothing
                     case CurvedUISettings.CurvedUIShape.CYLINDER:
-                    {
-                        if (!RaycastToCyllinderCanvas(ray3D, out remappedPosition, false, myLayerMask)) return;
-                        break;
-                    }
+                        {
+                            if (!RaycastToCyllinderCanvas(ray3D, out remappedPosition, false, myLayerMask)) return;
+                            break;
+                        }
                     case CurvedUISettings.CurvedUIShape.CYLINDER_VERTICAL:
-                    {
-                        if (!RaycastToCyllinderVerticalCanvas(ray3D, out remappedPosition, false, myLayerMask)) return;
-                        break;
-                    }
+                        {
+                            if (!RaycastToCyllinderVerticalCanvas(ray3D, out remappedPosition, false, myLayerMask)) return;
+                            break;
+                        }
                     case CurvedUISettings.CurvedUIShape.RING:
-                    {
-                        if (!RaycastToRingCanvas(ray3D, out remappedPosition, false, myLayerMask)) return;
-                        break;
-                    }
+                        {
+                            if (!RaycastToRingCanvas(ray3D, out remappedPosition, false, myLayerMask)) return;
+                            break;
+                        }
                     case CurvedUISettings.CurvedUIShape.SPHERE:
-                    {
-                        if (!RaycastToSphereCanvas(ray3D, out remappedPosition, false, myLayerMask)) return;
-                        break;
-                    }
+                        {
+                            if (!RaycastToSphereCanvas(ray3D, out remappedPosition, false, myLayerMask)) return;
+                            break;
+                        }
                 }
 
                 if (overrideEventData)
@@ -344,22 +344,29 @@ namespace CurvedUI
                 base.Raycast(newEventData, resultAppendList);
             }
 
-			//Scroll Handling---------------------------------------------//
-
+            //Scroll Handling---------------------------------------------//
+/*
+            if (eventData.pointerDrag != null)
+            {
+                ScrollManager sm = eventData.pointerDrag.GetComponent<ScrollManager>();
+                sm.shouldScroll = true;
+                //eventData.pointerDrag = null;
+            }
+*/
 			if (CurvedUIInputModule.Controller == CurvedUIInputModule.CurvedUIController.GAZE || 
 				CurvedUIInputModule.Controller == CurvedUIInputModule.CurvedUIController.GVRCONTROLLER)
 			{
 				//Test for selected object being dragged and initialize dragging, if needed.
 				//We do this here to trick unity's StandAloneInputModule into thinking we used a touch or mouse to do it.
 				if (eventData.IsPointerMoving() && eventData.pointerDrag != null && !eventData.dragging
-					&& ShouldStartDrag(eventData.pressPosition, eventData.position, EventSystem.current.pixelDragThreshold, eventData.useDragThreshold))
+					&& ShouldStartDrag(eventData.pressPosition, eventData.position, EventSystem.current.pixelDragThreshold, eventData.useDragThreshold, eventData))
 				{
                     
                     // ExecuteEvents.Execute(eventData.pointerDrag, eventData, ExecuteEvents.beginDragHandler);
                     ScrollManager sm = eventData.pointerDrag.GetComponent<ScrollManager> ();
 					if (sm != null) {
-						eventData.dragging = false;
-
+						eventData.dragging = true;
+                        /*
 						// Check for pointer press
 						if (eventData.pointerPress != eventData.pointerDrag) {
 							ExecuteEvents.Execute (eventData.pointerPress, eventData, ExecuteEvents.pointerUpHandler);
@@ -368,6 +375,7 @@ namespace CurvedUI
 							eventData.pointerPress = null;
 							eventData.rawPointerPress = null;
 						}
+                        */
 						eventData.pointerDrag = null;
 						sm.shouldScroll = true;
 					} else
@@ -1027,7 +1035,7 @@ namespace CurvedUI
         }
 
 
-        private bool ShouldStartDrag(Vector2 pressPos, Vector2 currentPos, float threshold, bool useDragThreshold)
+        private bool ShouldStartDrag(Vector2 pressPos, Vector2 currentPos, float threshold, bool useDragThreshold, PointerEventData eventData = null)
         {
 			/*
             if (!useDragThreshold)
@@ -1043,8 +1051,18 @@ namespace CurvedUI
 			// if (useSwipeScroll && ((Vector3)pointerEvent.GetSwipeStart() - Input.mousePosition).magnitude > swipeDragThreshold)
 			if (CurvedUIInputModule.Instance.useSwipeScroll && ((Vector3)mouseposition.swipeStartPos - Input.mousePosition).magnitude > threshold)
 			{
-			//debugText.text = "Swiping";
-			return true;
+                //debugText.text = "Swiping";
+                // Check for pointer press here
+                // if pointer press is different from pointer drag, remove pointer press
+                if (eventData != null && eventData.pointerPress != eventData.pointerDrag)
+                {
+                    ExecuteEvents.Execute(eventData.pointerPress, eventData, ExecuteEvents.pointerUpHandler);
+
+                    eventData.eligibleForClick = false;
+                    eventData.pointerPress = null;
+                    eventData.rawPointerPress = null;
+                }
+                return true;
 			}
 			#endif
 			return (pressPos - currentPos).sqrMagnitude >= threshold * threshold;

@@ -193,7 +193,8 @@ public class CurvedUIInputModule : StandaloneInputModule {
 		case CurvedUIController.GVRCONTROLLER:
 			{
 				CustomControllerRay = new Ray(customControllerTransform.position, customControllerTransform.forward);
-				ProcessGaze ();
+                ProcessGaze ();
+                // ProcessCustomRayController();
 				break;
 			}
 		default: goto case CurvedUIController.MOUSE;
@@ -228,9 +229,9 @@ public class CurvedUIInputModule : StandaloneInputModule {
 
 		var mouseData = GetMousePointerEventData(0);
 		PointerEventData eventData = mouseData.GetButtonState(PointerEventData.InputButton.Left).eventData.buttonData;
+        GameObject currentOverGo = eventData.pointerCurrentRaycast.gameObject;
 
-		if(pressedDown && !pressedLastFrame){//pointer down interactions
-			GameObject currentOverGo = eventData.pointerCurrentRaycast.gameObject;
+        if (pressedDown && !pressedLastFrame){//pointer down interactions
 
 			eventData.eligibleForClick = true;
 			eventData.delta = Vector2.zero;
@@ -241,12 +242,13 @@ public class CurvedUIInputModule : StandaloneInputModule {
 
 			DeselectIfSelectionChanged(currentOverGo, eventData);
 
+            /*
 			if (eventData.pointerEnter != currentOverGo)
 			{
 				// send a pointer enter to the touched element if it isn't the one to select...
 				HandlePointerExitAndEnter(eventData, currentOverGo);
 				eventData.pointerEnter = currentOverGo;
-			}
+			}*/
 
 			// search for the control that will receive the press
 			// if we can't find a press handler set the press
@@ -287,9 +289,8 @@ public class CurvedUIInputModule : StandaloneInputModule {
 			if (eventData.pointerDrag != null)
 				ExecuteEvents.Execute(eventData.pointerDrag, eventData, ExecuteEvents.initializePotentialDrag);
 
-		} else if(!pressedDown && pressedLastFrame){//pointer up interactions
-
-
+		}
+        if (!pressedDown && pressedLastFrame){//pointer up interactions
 			//if we did not move the pointer since the begining, this is a click.
 			if (eventData.pointerPress == eventData.selectedObject/*Vector2.Distance (eventData.position, eventData.pressPosition) < dragThreshold*/) {
 				ExecuteEvents.Execute (eventData.selectedObject, eventData, ExecuteEvents.pointerClickHandler);
@@ -309,18 +310,20 @@ public class CurvedUIInputModule : StandaloneInputModule {
             eventData.pointerPress = null;
             eventData.rawPointerPress = null;
 
-            if(eventData.pointerCurrentRaycast.gameObject != eventData.pointerEnter)
+            
+            //if(eventData.pointerCurrentRaycast.gameObject != eventData.pointerEnter)
+            if (currentOverGo != eventData.pointerEnter)
             {
                 HandlePointerExitAndEnter(eventData, null);
                 HandlePointerExitAndEnter(eventData, eventData.pointerCurrentRaycast.gameObject);
             }
 		}
 
-
+        /*
 		if (eventData.IsPointerMoving ()) {
 			ProcessDrag (eventData);
 			ProcessMove (eventData);
-		}
+		}*/
 
 		//save button state for this frame
 		pressedLastFrame = pressedDown;

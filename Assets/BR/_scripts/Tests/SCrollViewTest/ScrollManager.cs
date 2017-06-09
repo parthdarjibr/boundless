@@ -32,7 +32,7 @@ public class ScrollManager : MonoBehaviour
     public CreatorDetailParams creatorGridParams;
     VideoScrollRectItemsAdapter videoGridAdapter;
     CreatorScrollRectItemsAdapter creatorGridAdapter;
-
+    
     /// <summary>
     /// Scroll trigger for GearVR
     /// </summary>
@@ -54,6 +54,9 @@ public class ScrollManager : MonoBehaviour
     private int scrollDirection = 0;
     int scrollTo = -1;
 
+    // Current pressed gameobject to send pointerup event to
+    public GameObject currentPressedGo;
+    public PointerEventData currentPointerEventData;
 
     #endregion
 
@@ -240,6 +243,24 @@ public class ScrollManager : MonoBehaviour
     #region HELPER METHODS
     void PerformScroll(ScrollDirection d)
     {
+        /*
+        // Send pointer up event to current pressed gameobject if available
+        if(currentPressedGo != null)
+        {
+            ExecuteEvents.Execute(currentPressedGo, new PointerEventData(EventSystem.current), ExecuteEvents.pointerUpHandler);
+            currentPressedGo = null;
+        }*/
+        if (currentPointerEventData != null && currentPointerEventData.pointerPress != currentPointerEventData.pointerDrag)
+        {
+            ExecuteEvents.Execute(currentPointerEventData.pointerPress, currentPointerEventData, ExecuteEvents.pointerUpHandler);
+
+            currentPointerEventData.eligibleForClick = false;
+            currentPointerEventData.pointerPress = null;
+            currentPointerEventData.rawPointerPress = null;
+
+            currentPointerEventData = null;
+        }
+
         switch (d)
         {
             case ScrollDirection.Up:

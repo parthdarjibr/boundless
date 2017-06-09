@@ -111,26 +111,29 @@ namespace BR.App {
 			}
 		}
 
-		public void ShowNetworkError() {
-			ErrorDetail ed = new ErrorDetail();
-			ed.SetErrorTitle (errorTitle);
-			ed.SetErrorDescription (errorDescription);
-
-            /*
-            // Associate this error detail with an action
-            // Add a reset button to the panel
-            ed.AddToDictionary(ErrorDetail.ResponseType.RETRY, new UnityEngine.Events.UnityAction(delegate
+		public void ShowNetworkError(ErrorDetail ed = null) {
+            if (ed == null)
             {
-                SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-            }));
-            */
+                ed = new ErrorDetail();
+                ed.SetErrorTitle(errorTitle);
+                ed.SetErrorDescription(errorDescription);
 
-            ed.AddToDictionary(ErrorDetail.ResponseType.EXIT, new UnityEngine.Events.UnityAction(delegate {
-				ViewManagerUtility.Instance().BackButtonPressed();
-                OVRManager.PlatformUIConfirmQuit();
-				// OVRManager.PlatformUIGlobalMenu();
-			}));
-            
+                /*
+                // Associate this error detail with an action
+                // Add a reset button to the panel
+                ed.AddToDictionary(ErrorDetail.ResponseType.RETRY, new UnityEngine.Events.UnityAction(delegate
+                {
+                    SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+                }));
+                */
+
+                ed.AddToDictionary(ErrorDetail.ResponseType.EXIT, new UnityEngine.Events.UnityAction(delegate
+                {
+                    ViewManagerUtility.Instance().BackButtonPressed();
+                    OVRManager.PlatformUIConfirmQuit();
+                    // OVRManager.PlatformUIGlobalMenu();
+                }));
+            }
 			ViewManagerUtility.Instance().SetupErrorView(ed);
 		}
 
