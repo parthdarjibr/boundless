@@ -265,17 +265,17 @@ namespace BR.App
                         // Associate this error detail with an action
                         ed.AddToDictionary(ErrorDetail.ResponseType.CANCEL, new UnityEngine.Events.UnityAction(delegate
                         {
-                            ViewManagerUtility.Instance().CloseVideoView();
+                            //ViewManagerUtility.Instance().CloseVideoView();
+                            // Call back button pressed to close the error view
+                            ViewManagerUtility.Instance().BackButtonPressed();
 
                         }));
 
-                        /*
                         // Add a try again button
-                        ed.AddToDictionary(ErrorDetail.ResponseType.RETRY, new UnityEngine.Events.UnityAction(delegate
+                        ed.AddToDictionary(ErrorDetail.ResponseType.SETTINGS, new UnityEngine.Events.UnityAction(delegate
                         {
-                            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+                            OVRManager.PlatformUIGlobalMenu();
                         }));
-                        */
 
                         ApplicationController.Instance().OpenErrorView(ed);
                     }

@@ -1,6 +1,6 @@
 fileFormatVersion: 2
-guid: 86dbcf792cf5c304c8bafd1e9e1ff911
-timeCreated: 1497025655
+guid: 5055915c565308145837adf10b446982
+timeCreated: 1497038339
 licenseType: Pro
 TextureImporter:
   fileIDToRecycleName: {}
@@ -40,9 +40,9 @@ TextureImporter:
   spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
-  alignment: 4
-  spritePivot: {x: 0, y: 0.5}
-  spriteBorder: {x: 5, y: 5, z: 5, w: 5}
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spritePixelsToUnits: 72
   alphaIsTransparency: 1
   spriteTessellationDetail: -1
@@ -52,7 +52,7 @@ TextureImporter:
     serializedVersion: 2
     sprites: []
     outline: []
-  spritePackingTag: 
+  spritePackingTag: yellowsprites
   userData: 
   assetBundleName: 
   assetBundleVariant: 

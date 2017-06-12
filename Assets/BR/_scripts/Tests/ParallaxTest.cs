@@ -46,8 +46,8 @@ public class ParallaxTest : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
 
             t.position = t.position.ModifyX(initPos.x + CUIGazePointer.instance.transform.position.x.Remap(-rectPos.x/2, rectPos.x/2, -change, change));
             t.position = t.position.ModifyY(initPos.y + CUIGazePointer.instance.transform.position.y.Remap(-rectPos.y/2, rectPos.y/2, -change, change));
-            //t.position = t.position.ModifyX(initPos.x + CUIGazePointer.instance.transform.position.x.Remap(0, rectPos.x, -change, change));
-            //t.position = t.position.ModifyY(initPos.y + CUIGazePointer.instance.transform.position.y.Remap(0, rectPos.y, -change, change));
+            // t.position = t.position.ModifyX(initPos.x + CUIGazePointer.instance.transform.position.x.Remap(0, rectPos.x, -change, change));
+            // t.position = t.position.ModifyY(initPos.y + CUIGazePointer.instance.transform.position.y.Remap(0, rectPos.y, -change, change));
 
         }
         else if(shouldSnapBack)

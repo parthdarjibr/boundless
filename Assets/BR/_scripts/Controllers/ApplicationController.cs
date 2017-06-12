@@ -8,12 +8,9 @@
 //			to the ViewManager class
 //
 using UnityEngine;
-using System.Collections;
 using System;
 using BR.BRUtilities;
-using BR.BRUtilities.UI;
-using System.Collections.Generic;
-using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 namespace BR.App {
 	public class ApplicationController : MonoBehaviour
@@ -146,6 +143,7 @@ namespace BR.App {
 #endregion
 		}
 
+        
 		void OnApplicationPause(bool pauseState) {
 //			Debug.Log (pauseState ? "Application Pause" : "Application Resume");
 			if (!pauseState) {
@@ -156,14 +154,18 @@ namespace BR.App {
 					ed.SetErrorTitle ("Connect to Wifi");
 					ed.SetErrorDescription ("Wifi connection is required to use the app");
 
-                    /*
                     // Associate this error detail with an action
                     // Add a reset button to the panel
                     ed.AddToDictionary(ErrorDetail.ResponseType.RETRY, new UnityEngine.Events.UnityAction(delegate
                     {
                         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
                     }));
-                    */
+
+                    ed.AddToDictionary(ErrorDetail.ResponseType.SETTINGS, new UnityEngine.Events.UnityAction(delegate
+                    {
+                        OVRManager.PlatformUIGlobalMenu();
+                    }));
+
 
                     // Associate this error detail with an action
                     // ed.AddToDictionary (ErrorDetail.ResponseType.RETRY, SetupHomeScreen);
@@ -177,7 +179,6 @@ namespace BR.App {
 
 			}
 		}
-
 #endregion
 
 #region PUBLIC METHODS
@@ -203,7 +204,42 @@ namespace BR.App {
 		}
 
 		public void OpenInfluencerView(InfluencerDetail influencer) {
-			ViewManagerUtility.Instance ().SetupInfluencerView (influencer);
+
+            //if (!ConnectionManager.Instance().isNetworkAvailable)
+            if (!(Application.internetReachability == NetworkReachability.ReachableViaLocalAreaNetwork))
+            {
+                // Setup a new errordetail
+                ErrorDetail ed = new ErrorDetail();
+                ed.SetErrorTitle("Wifi Connection Required");
+                ed.SetErrorDescription("A wifi connection is required to browse Boundless. Please check whether you are connected to wifi and try again");
+
+
+                // Associate this error detail with an action
+                // Add a reset button to the panel
+                ed.AddToDictionary(ErrorDetail.ResponseType.RETRY, new UnityEngine.Events.UnityAction(delegate
+                {
+                    OpenInfluencerView(influencer);
+                }));
+
+                ed.AddToDictionary(ErrorDetail.ResponseType.SETTINGS, new UnityEngine.Events.UnityAction(delegate
+                {
+                    ViewManagerUtility.Instance().BackButtonPressed();
+                    OVRManager.PlatformUIGlobalMenu();
+                }));
+
+                ed.AddToDictionary(ErrorDetail.ResponseType.EXIT, new UnityEngine.Events.UnityAction(delegate
+                {
+
+                    ViewManagerUtility.Instance().BackButtonPressed();
+                    OVRManager.PlatformUIGlobalMenu();
+                }));
+                ConnectionManager.Instance().ShowNetworkError(ed);
+                return;
+            }
+            else
+            {
+                ViewManagerUtility.Instance().SetupInfluencerView(influencer);
+            }
 		}
 
 		public void OpenErrorView(ErrorDetail ed) {
@@ -212,27 +248,63 @@ namespace BR.App {
 		}
 
 		public void OpenVideoPlayer(VideoDetail video) {
-			GameObject currentVideoPlayerPrefab;
-			// Decide which video player to instantiate
-			switch(video.type) {
-			case VideoDetail.Type.MONO:
-				currentVideoPlayerPrefab = videoPrefabMono;
-				break;
-			case VideoDetail.Type.STEREO:
-				currentVideoPlayerPrefab = videoPrefabStereo;
-				break;
-			case VideoDetail.Type.VOLUMETRIC:
-				currentVideoPlayerPrefab = videoPrefabVol;
-				break;
-			default:
-				// Open mono video by default
-				// TODO implement video type error
-				currentVideoPlayerPrefab = videoPrefabMono;
-				break;
-			}
+            // Check for internet 
+            if (!(Application.internetReachability == NetworkReachability.ReachableViaLocalAreaNetwork))
+            {
+                // Setup a new errordetail
+                ErrorDetail ed = new ErrorDetail();
+                ed.SetErrorTitle("Wifi Connection Required");
+                ed.SetErrorDescription("A wifi connection is required to browse Boundless. Please check whether you are connected to wifi and try again");
 
-			// Ask view controller to show the video
-			ViewManagerUtility.Instance().SetupVideoView(video, currentVideoPlayerPrefab);
+
+                // Associate this error detail with an action
+                // Add a reset button to the panel
+                ed.AddToDictionary(ErrorDetail.ResponseType.RETRY, new UnityEngine.Events.UnityAction(delegate
+                {
+                    ViewManagerUtility.Instance().BackButtonPressed();
+                    OpenVideoPlayer(video);
+                }));
+
+                ed.AddToDictionary(ErrorDetail.ResponseType.SETTINGS, new UnityEngine.Events.UnityAction(delegate
+                {
+                    ViewManagerUtility.Instance().BackButtonPressed();
+                    OVRManager.PlatformUIGlobalMenu();
+                }));
+
+                ed.AddToDictionary(ErrorDetail.ResponseType.EXIT, new UnityEngine.Events.UnityAction(delegate
+                {
+
+                    ViewManagerUtility.Instance().BackButtonPressed();
+                    OVRManager.PlatformUIGlobalMenu();
+                }));
+                ConnectionManager.Instance().ShowNetworkError(ed);
+                return;
+            }
+            else
+            {
+                GameObject currentVideoPlayerPrefab;
+                // Decide which video player to instantiate
+                switch (video.type)
+                {
+                    case VideoDetail.Type.MONO:
+                        currentVideoPlayerPrefab = videoPrefabMono;
+                        break;
+                    case VideoDetail.Type.STEREO:
+                        currentVideoPlayerPrefab = videoPrefabStereo;
+                        break;
+                    case VideoDetail.Type.VOLUMETRIC:
+                        currentVideoPlayerPrefab = videoPrefabVol;
+                        break;
+                    default:
+                        // Open mono video by default
+                        // TODO implement video type error
+                        currentVideoPlayerPrefab = videoPrefabMono;
+                        break;
+                }
+
+                // Ask view controller to show the video
+                ViewManagerUtility.Instance().SetupVideoView(video, currentVideoPlayerPrefab);
+            }
 		}
 
 		public void OpenHomeView() {

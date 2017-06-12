@@ -54,7 +54,7 @@ public class CacheManager : MonoBehaviour {
         }
         catch (ArgumentException)
         {
-            Debug.Log("Already exists");
+            // Debug.Log("Already exists");
         }
     }
 

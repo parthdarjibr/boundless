@@ -91,73 +91,45 @@ namespace BR.App {
 				return;
 			}
 
-            //if (!ConnectionManager.Instance().isNetworkAvailable)
-            if(!(Application.internetReachability == NetworkReachability.ReachableViaLocalAreaNetwork))
+            // The view can be instantiated only on the UI canvas
+            GoToViewObject(ViewObject.ObjectType.UI);
+
+            // Check if the last canvas on the canvas is an influencer object
+            CanvasObject c = GetLastViewObject().canvasStack.Peek() as CanvasObject;
+
+            CanvasObject influencerObject;
+            if (c.canvasType == CanvasObject.CanvasType.INFLUENCER)
             {
-                // Setup a new errordetail
-                ErrorDetail ed = new ErrorDetail();
-                ed.SetErrorTitle("Wifi Connection Required");
-                ed.SetErrorDescription("A wifi connection is required to browse Boundless. Please check whether you are connected to wifi and try again");
+                // Debug.Log ("influencer canvas is the last canvas");
+                influencerObject = c;
 
+                // If the influencer panel is already loaded, delete all videos from the list
+                influencerObject.GetComponentInChildren<VideoPanelLoader>().RemoveAllVideos();
 
-                // Associate this error detail with an action
-                // Add a reset button to the panel
-                ed.AddToDictionary(ErrorDetail.ResponseType.RETRY, new UnityEngine.Events.UnityAction(delegate
-                {
-                    SetupInfluencerView(influencer);
-                }));
-
-
-                ed.AddToDictionary(ErrorDetail.ResponseType.EXIT, new UnityEngine.Events.UnityAction(delegate
-                {
-
-                    ViewManagerUtility.Instance().BackButtonPressed();
-                    OVRManager.PlatformUIGlobalMenu();
-                }));
-                ConnectionManager.Instance().ShowNetworkError(ed);
-                return;
+                // Remove the playlist
+                VideoPlaylistManager.Instance().RemoveLastList();
             }
             else
             {
-                // The view can be instantiated only on the UI canvas
-                GoToViewObject(ViewObject.ObjectType.UI);
 
-                // Check if the last canvas on the canvas is an influencer object
-                CanvasObject c = GetLastViewObject().canvasStack.Peek() as CanvasObject;
+                // Instantiate the Object
+                influencerObject = (CanvasObject)Instantiate(influencerPrefab, UICanvas.transform);
 
-                CanvasObject influencerObject;
-                if (c.canvasType == CanvasObject.CanvasType.INFLUENCER)
-                {
-                    // Debug.Log ("influencer canvas is the last canvas");
-                    influencerObject = c;
+                // Set the position of the object
+                (influencerObject.transform as RectTransform).sizeDelta = Vector3.zero;
 
-                    // If the influencer panel is already loaded, delete all videos from the list
-                    influencerObject.GetComponentInChildren<VideoPanelLoader>().RemoveAllVideos();
+                // Set scale of the object
+                // influencerObject.transform.localScale = Vector3.one;
 
-                    // Remove the playlist
-                    VideoPlaylistManager.Instance().RemoveLastList();
-                }
-                else
-                {
+                DoBasicSetup(influencerObject);
 
-                    // Instantiate the Object
-                    influencerObject = (CanvasObject)Instantiate(influencerPrefab, UICanvas.transform);
-
-                    // Set the position of the object
-                    (influencerObject.transform as RectTransform).sizeDelta = Vector3.zero;
-
-                    // Set scale of the object
-                    // influencerObject.transform.localScale = Vector3.one;
-
-                    DoBasicSetup(influencerObject);
-
-                    // Add the object to stack
-                    AddCanvasToView(influencerObject, ViewObject.ObjectType.UI);
-                }
-
-                // influencerObject.GetComponent<InfluencerPageLoader> ().SetupInfluencerPage (influencer);
-                StartCoroutine(influencerObject.GetComponent<InfluencerPageLoader>().SetupInfluencerPageOptimized(influencer));
+                // Add the object to stack
+                AddCanvasToView(influencerObject, ViewObject.ObjectType.UI);
             }
+
+            // influencerObject.GetComponent<InfluencerPageLoader> ().SetupInfluencerPage (influencer);
+            StartCoroutine(influencerObject.GetComponent<InfluencerPageLoader>().SetupInfluencerPageOptimized(influencer));
+            
 			/*
 			// Set the influencer profile view
 			// influencerObject.GetComponentInChildren<InfluencerProfileLoader>().SetupInfluencerProfile(influencer);
@@ -194,7 +166,6 @@ namespace BR.App {
                 if (oldPos == Vector3.zero)
                 {
                     float posZ;
-                    Debug.Log(v.canvasStack.Count);
                     posZ = BaseDistance - (v.canvasStack.Count + 1) * CanvasDistance;
 
                     // Change position of the menu to in front of the camera
@@ -255,6 +226,10 @@ namespace BR.App {
 						responseButton = UIHelper.FindDeepChild (errorObject.transform, "BtnExit");
 						responseButton.gameObject.SetActive (true);
 						break;
+                        case ErrorDetail.ResponseType.SETTINGS:
+                            responseButton = UIHelper.FindDeepChild(errorObject.transform, "BtnSettings");
+                            responseButton.gameObject.SetActive(true);
+                            break;
 					}
 
 					if (responseButton != null) {
@@ -862,7 +837,7 @@ namespace BR.App {
             // Associate this error detail with an action
             // ed.AddToDictionary(ErrorDetail.ResponseType.RETRY, CheckForInternetAgain);
             ed.AddToDictionary(ErrorDetail.ResponseType.EXIT, new UnityEngine.Events.UnityAction(delegate {
-                ViewManagerUtility.Instance().BackButtonPressed();
+                BackButtonPressed();
                 OVRManager.PlatformUIConfirmQuit();
                 // OVRManager.PlatformUIGlobalMenu();
             }));

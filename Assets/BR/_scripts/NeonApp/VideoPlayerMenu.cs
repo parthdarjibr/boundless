@@ -43,6 +43,7 @@ namespace BR.App
         private float startTime = 0f;
         private bool shouldDisappear = false;
 
+        bool pointerOut = false;
         #endregion
 
         #region DATA VARIABLES
@@ -56,7 +57,6 @@ namespace BR.App
 
         void Update()
         {
-
             // Check for the time and hide the menu after threshold
             if (shouldDisappear && ((Time.time - startTime) > autoHideTimeOut) && viewLoaded)
             {
@@ -80,10 +80,10 @@ namespace BR.App
 
                 if (videoSeekbar.interactable)
                 {
-                    videoSeekbar.value = currentTimeMs/totalTimeMs;
+                    videoSeekbar.value = currentTimeMs / totalTimeMs;
                     txtBeginTime.text = TruncateMsToMin(currentTimeMs);
                     txtEndTime.text = "-" + TruncateMsToMin(totalTimeMs - currentTimeMs);
-                
+
                 }
             }
 
@@ -298,6 +298,7 @@ namespace BR.App
 
         public void OnPointerEnter()
         {
+            pointerOut = false;
             ExecuteEvents.Execute(btnNext.gameObject, new PointerEventData(EventSystem.current), ExecuteEvents.pointerExitHandler);
             if (shouldAutoHide)
             {
@@ -312,6 +313,7 @@ namespace BR.App
 
         public void OnPointerExit()
         {
+            pointerOut = true;
             if (!isScrubbing)
             {
                 ExecuteEvents.Execute(btnNext.gameObject, new PointerEventData(EventSystem.current), ExecuteEvents.pointerExitHandler);
@@ -320,10 +322,10 @@ namespace BR.App
                     PerformForcedFadeOut(0, () =>
                     {
                         shouldReposition = true;
-                    // Disable the collider on the menu
-                    GetComponent<MeshCollider>().enabled = false;
-                    // isShowing = false;
-                });
+                        // Disable the collider on the menu
+                        GetComponent<MeshCollider>().enabled = false;
+                        // isShowing = false;
+                    });
                 }
             }
             /*
@@ -374,15 +376,12 @@ namespace BR.App
         {
             // if (_wasPlayingOnScrub)
             // {
-                // Seek to the position
+            // Seek to the position
             float scrubTo = videoSeekbar.value * currentVideoPlayer.mediaPlayer.Info.GetDurationMs();
 
 
             currentVideoPlayer.mediaPlayer.Control.Seek(scrubTo);
-
-            // currentVideoPlayer.mediaPlayer.Control.Play();
-            StartCoroutine(PlayVideoAfterScrub());
-
+            
             _wasPlayingOnScrub = false;
 
             // Update the texts
@@ -392,6 +391,17 @@ namespace BR.App
             txtCurrentTime.gameObject.SetActive(false);
 
             isScrubbing = false;
+
+            // currentVideoPlayer.mediaPlayer.Control.Play();
+            StartCoroutine(PlayVideoAfterScrub());
+
+            // Check if should reposition is still false
+            // This means that the pointer up was executed outside of the panel
+            // Execute pointerup handler
+            //if (!shouldReposition)
+            //{
+            //    OnPointerExit();
+            //}
 
             // }
         }
@@ -523,12 +533,14 @@ namespace BR.App
             return TimeSpan.FromMilliseconds(milliseconds).TotalMinutes;
         }
 
+        /*
         private string TruncateFloatToString(double d)
         {
             string str = d.ToString(@"hh\:mm\:ss\:fff");
             return Math.Round(d, 2).ToString().Replace('.', ':');
             // return string.Format("{0:00", val).Replace('.', ':');
         }
+        */
 
         private string TruncateMsToMin(double ms)
         {
@@ -543,10 +555,21 @@ namespace BR.App
         IEnumerator PlayVideoAfterScrub()
         {
             RenderHeads.Media.AVProVideo.MediaPlayer mp = currentVideoPlayer.mediaPlayer;
-            while(mp != null && mp.TextureProducer != null && mp.TextureProducer.GetTextureFrameCount() <= 0)
+            while (mp != null && mp.TextureProducer != null && mp.TextureProducer.GetTextureFrameCount() <= 0
+                && mp.Control.IsBuffering())
             {
                 yield return null;
             }
+
+            // Check if should reposition is still false
+            // This means that the pointer up was executed outside of the panel
+            // Execute pointerup handler
+
+            if (pointerOut)
+            {
+                OnPointerExit();
+            }
+
             currentVideoPlayer.mediaPlayer.Control.Play();
 
             // Change play button
@@ -556,4 +579,3 @@ namespace BR.App
         #endregion
     }
 }
-

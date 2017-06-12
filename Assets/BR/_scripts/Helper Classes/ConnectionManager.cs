@@ -68,9 +68,11 @@ namespace BR.App {
         #region VARIABLES
 
         public bool isNetworkAvailable = false;
+        public float checkingInterval = 10f;
+        private float startTime = 0f;
 		private string errorTitle = "Wifi connection required";
 		private string errorDescription;
-
+        
 		#endregion
 
 		#region UNITY MONO METHODS
@@ -100,12 +102,28 @@ namespace BR.App {
 			}
 		}
 
+        private void Update()
+        {
+            if(Time.time - startTime > checkingInterval)
+            {
+                // Check for internet
+                isNetworkAvailable = (Application.internetReachability == NetworkReachability.ReachableViaLocalAreaNetwork);
+                
+                // Show error
 
-		#endregion
+                startTime = Time.time;
+            }
+        }
 
-		#region PRIVATE METHODS
+        private void Start()
+        {
+            startTime = Time.time;
+        }
+        #endregion
 
-		void CheckForInternetAgain() {
+        #region PRIVATE METHODS
+
+        void CheckForInternetAgain() {
 			if (!isNetworkAvailable) {
 				ShowNetworkError ();
 			}
@@ -118,14 +136,20 @@ namespace BR.App {
                 ed.SetErrorTitle(errorTitle);
                 ed.SetErrorDescription(errorDescription);
 
-                /*
+                
                 // Associate this error detail with an action
                 // Add a reset button to the panel
                 ed.AddToDictionary(ErrorDetail.ResponseType.RETRY, new UnityEngine.Events.UnityAction(delegate
                 {
                     SceneManager.LoadScene(SceneManager.GetActiveScene().name);
                 }));
-                */
+
+                ed.AddToDictionary(ErrorDetail.ResponseType.SETTINGS, new UnityEngine.Events.UnityAction(delegate
+                {
+                    ViewManagerUtility.Instance().BackButtonPressed();
+                    OVRManager.PlatformUIGlobalMenu();
+                }));
+
 
                 ed.AddToDictionary(ErrorDetail.ResponseType.EXIT, new UnityEngine.Events.UnityAction(delegate
                 {

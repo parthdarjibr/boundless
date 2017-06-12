@@ -51,7 +51,7 @@ public class VideoScrollRectItemsAdapter : GridAdapter<VideoDetailParams, VideoI
                 onProgress = progress =>
                 {
                     if (IsModelStillValid(viewHolder.itemIndex, itemIndexAtRequest, requestedPath))
-                        viewHolder.thumbProgress.fillAmount = 1f - progress;
+                        viewHolder.thumbProgress.fillAmount = progress;
                 },
                 onError = () =>
                 {
@@ -135,7 +135,7 @@ public class VideoScrollRectItemsAdapter : GridAdapter<VideoDetailParams, VideoI
                     onProgress = progress =>
                     {
                         if (IsModelStillValid(viewHolder.itemIndex, itemIndexAtRequest, userPicPath))
-                            viewHolder.infPicProgress.fillAmount = 1f - progress;
+                            viewHolder.infPicProgress.fillAmount = progress;
                     },
                     onError = () =>
                     {
