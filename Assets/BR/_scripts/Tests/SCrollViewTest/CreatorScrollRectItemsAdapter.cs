@@ -62,7 +62,7 @@ public class CreatorScrollRectItemsAdapter : GridAdapter<CreatorDetailParams, Cr
                 {
                     if (IsModelStillValid(viewHolder.itemIndex, itemIndexAtRequest, requestedPath))
                     {
-                        viewHolder.infPicProgressBar.fillAmount = 1f - progress;
+                        viewHolder.infPicProgressBar.fillAmount = progress;
                     }
                 },
                 onError = () =>

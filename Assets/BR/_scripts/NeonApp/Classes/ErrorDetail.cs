@@ -19,7 +19,8 @@ namespace BR.App {
 			DECLINE,
 			CANCEL,
 			RETRY,
-			EXIT
+			EXIT,
+            SETTINGS
 		}
 
 		public Dictionary<ResponseType, UnityAction> ResponseDict {

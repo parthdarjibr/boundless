@@ -93,7 +93,6 @@ namespace BR.App {
 			// Add this list to the list
 			VideoPlaylistManager.Instance().AddPlaylistToDictionary(category, catVideo);
 
-            Debug.Log("Playlist added");
 		}
 
 		#endregion
@@ -129,12 +128,16 @@ namespace BR.App {
                     OVRManager.PlatformUIConfirmQuit();
 				}));
 
-                /*
+                
                 ed.AddToDictionary(ErrorDetail.ResponseType.RETRY, new UnityEngine.Events.UnityAction(delegate
                 {
                     SceneManager.LoadScene(SceneManager.GetActiveScene().name);
                 }));
-                */
+
+                ed.AddToDictionary(ErrorDetail.ResponseType.SETTINGS, new UnityEngine.Events.UnityAction(delegate
+                {
+                    OVRManager.PlatformUIGlobalMenu();
+                }));
 
                 ApplicationController.Instance ().OpenErrorView (ed);
 			} else {
