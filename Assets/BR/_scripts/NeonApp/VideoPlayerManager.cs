@@ -274,6 +274,7 @@ namespace BR.App
                         // Add a try again button
                         ed.AddToDictionary(ErrorDetail.ResponseType.SETTINGS, new UnityEngine.Events.UnityAction(delegate
                         {
+                            ViewManagerUtility.Instance().BackButtonPressed();
                             OVRManager.PlatformUIGlobalMenu();
                         }));
 
