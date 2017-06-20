@@ -120,15 +120,15 @@ namespace BR.App {
 		/// Click event handler for video buttons
 		/// </summary>
 		void VideoButtonClicked() {
-			// AUDIO IS PLAYED FROM AUDIOPLAYBACKMANAGER
-			// Play the audio
-			// AudioController.Instance().PlayOneShot(AudioController.Instance().videoClickAudioClip);
+            // AUDIO IS PLAYED FROM AUDIOPLAYBACKMANAGER
+            // Play the audio
+            // AudioController.Instance().PlayOneShot(AudioController.Instance().videoClickAudioClip);
 
-			// Also send the event to the play button
-			ApplicationController.Instance ().OpenVideoPlayer (currentVideo);
+            // Handle analytics
+            AnalyticsManager.Instance().SendButtonClickAnalytics("video", LoadInfluencerDetails ? "videoOnHome" : "videoOnInfluencer", currentVideo.name);
 
-			// Handle analytics
-			AnalyticsManager.Instance().SendButtonClickAnalytics("video", LoadInfluencerDetails ? "videoOnHome" : "videoOnInfluencer", currentVideo.name);
+            // Also send the event to the play button
+            ApplicationController.Instance ().OpenVideoPlayer (currentVideo);
 
 			// Send pointer exit message to the video button
 			ExecuteEvents.Execute (this.gameObject, new PointerEventData (EventSystem.current), ExecuteEvents.pointerExitHandler);

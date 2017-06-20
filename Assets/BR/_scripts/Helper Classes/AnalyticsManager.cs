@@ -39,6 +39,7 @@ namespace BR.BRUtilities {
 
 			deviceID = SystemInfo.deviceUniqueIdentifier;
 
+            
 			// Setup analytics based on platform
 			#if UNITY_EDITOR
 
@@ -49,6 +50,7 @@ namespace BR.BRUtilities {
 			registerAnalytics = true;
 
 			#endif
+            
 		}
 
         private void OnDestroy()
@@ -60,7 +62,7 @@ namespace BR.BRUtilities {
 
         #region VARIABLES
 
-        bool registerAnalytics = false;
+        public bool registerAnalytics = true;
 
 		#endregion
 
@@ -98,7 +100,7 @@ namespace BR.BRUtilities {
 					{ "CustomTS", DateTime.Now.ToString () }
 				});
 
-				Debug.Log ("SendVideoAnalytics");
+				Debug.Log ("Spent time: " + spentTimePercentage);
 			}
 		}
 
@@ -137,12 +139,39 @@ namespace BR.BRUtilities {
 		/// </summary>
 		public void SendNoWifiAnalytics() {
 			if (registerAnalytics) {
-				Analytics.CustomEvent ("No Wifi", new Dictionary<string, object> {
+				Analytics.CustomEvent ("No Wi-Fi", new Dictionary<string, object> {
 					{ "UserUUID", deviceID }
 					//{ "UserUUID", PlayerPrefs.GetString ("UniqueID") }
 				});
 			}
 		}
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="buttonType">buttonDown, buttonUp</param>
+        public void SendSeekbarAnalytics(string buttonType, float clickTime, string videoName, string videoUUID)
+        {
+            if (registerAnalytics)
+            {
+                // Edge cases
+                if (videoUUID == null)
+                   videoUUID = "NoVideoUUID";
+                if (videoName == null)
+                    videoName = "NoName";
+
+
+                Analytics.CustomEvent("ButtonClicked", new Dictionary<string, object>
+                {
+                    {"ButtonCategory", "VideoSeekbar" },
+                    { "ButtonType", buttonType },
+                    { "ClickTime",  clickTime},
+                    { "VideoName", videoName },
+                    { "VideoUUID", videoUUID },
+                    { "UserUUID", deviceID }
+                });
+            }
+        }
 
 		#endregion
 	}

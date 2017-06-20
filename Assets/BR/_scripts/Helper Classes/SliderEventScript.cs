@@ -14,7 +14,6 @@ namespace BR.App {
             backgroundImage.sprite = hoverSprite;
             AudioController.Instance().PlayOneShot(ApplicationController.Instance().interactionClickAudioClip);
             videoMenu.SeekbarPointerDown();
-
         }
 
         public void OnPointerUp(PointerEventData eventData)

@@ -13,6 +13,14 @@ using UnityEngine.Events;
 namespace BR.App {
 	public class ErrorDetail
 	{
+        public enum ErrorType
+        {
+            STARTUP,
+            INFLUENCERCLICK,
+            VIDEOCLICK,
+            INVIDEO
+        }
+
 		public enum ResponseType
 		{
 			ACCEPT,
@@ -20,7 +28,9 @@ namespace BR.App {
 			CANCEL,
 			RETRY,
 			EXIT,
-            SETTINGS
+            SETTINGS,
+            RESTART,
+            IGNORE
 		}
 
 		public Dictionary<ResponseType, UnityAction> ResponseDict {

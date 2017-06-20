@@ -138,7 +138,7 @@ public class CreatorScrollRectItemsAdapter : GridAdapter<CreatorDetailParams, Cr
 	#region EVENT HANDLERS
 
 	void InfluencerButtonClicked(InfluencerDetail currentInfluencer) {
-		AnalyticsManager.Instance ().SendButtonClickAnalytics ("creator", "creatorOnHome", currentInfluencer.displayName);
+		AnalyticsManager.Instance ().SendButtonClickAnalytics ("creator", "creatorOnHome", currentInfluencer.handle);
 
 		// ApplicationController.Instance ().OpenInfluencerView (currentInfluencer);
 		ApplicationController.Instance ().OpenInfluencerView (currentInfluencer.gid);

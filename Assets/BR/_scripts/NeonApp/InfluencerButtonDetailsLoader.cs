@@ -96,13 +96,14 @@ namespace BR.App {
 			r.Add (ErrorDetail.ResponseType.ACCEPT);
 
 			ed.SetResponseTypes (r);
-			*/
+			
 
 			// Add responses to dictionary
 			ed.AddToDictionary (ErrorDetail.ResponseType.ACCEPT, new UnityEngine.Events.UnityAction (delegate {
 				ViewManagerUtility.Instance ().RemoveCanvasFromCurrentView ();
 			}));
 			ApplicationController.Instance ().OpenErrorView (ed);
+            */
 		}
 
 		#endregion

@@ -44,9 +44,9 @@ namespace BR.App {
 				if (Application.internetReachability == NetworkReachability.ReachableViaCarrierDataNetwork) {
 					// Reacahable via mobile network
 					// But can't use the app
-					errorDescription = "We have detected that you are on a mobile network. A Wifi connection is required to use this app.";
+					errorDescription = "We have detected that you are on a mobile network. A Wi-Fi connection is required to use this app.";
 				} else {
-					errorDescription = "A Wifi connection is required to use the app";
+					errorDescription = "A Wi-Fi connection is required to use the app";
 				}
 
 				isNetworkAvailable = false;
@@ -70,7 +70,7 @@ namespace BR.App {
         public bool isNetworkAvailable = false;
         public float checkingInterval = 10f;
         private float startTime = 0f;
-		private string errorTitle = "Wifi connection required";
+		private string errorTitle = "Wi-Fi connection required";
 		private string errorDescription;
         
 		#endregion
@@ -79,7 +79,7 @@ namespace BR.App {
 
 		void NetworkChange_NetworkAvailabilityChanged (object sender, NetworkAvailabilityEventArgs e)
 		{
-			Debug.Log ("wifi network changed");
+			Debug.Log ("Wi-Fi network changed");
 
 			if (e.IsAvailable) {
 				isNetworkAvailable = true;
@@ -88,11 +88,11 @@ namespace BR.App {
 				if (Application.internetReachability == NetworkReachability.ReachableViaLocalAreaNetwork) {
 					// All good
 				} else {
-					errorDescription = "We have detected that you are on a mobile network. A Wifi connection is required to use this app.";
+					errorDescription = "We have detected that you are on a mobile network. A Wi-Fi connection is required to use this app.";
 					isNetworkAvailable = false;
 				}
 			} else {
-				errorDescription = "A Wifi connection is required to use the app";
+				errorDescription = "A Wi-Fi connection is required to use the app";
 				isNetworkAvailable = false;
 			}
 
@@ -141,7 +141,8 @@ namespace BR.App {
                 // Add a reset button to the panel
                 ed.AddToDictionary(ErrorDetail.ResponseType.RETRY, new UnityEngine.Events.UnityAction(delegate
                 {
-                    SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+                    Debug.Log("Retry");
+                    //SceneManager.LoadScene(SceneManager.GetActiveScene().name);
                 }));
 
                 ed.AddToDictionary(ErrorDetail.ResponseType.SETTINGS, new UnityEngine.Events.UnityAction(delegate

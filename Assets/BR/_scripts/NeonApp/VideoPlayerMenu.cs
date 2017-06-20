@@ -43,6 +43,9 @@ namespace BR.App
         private float startTime = 0f;
         private bool shouldDisappear = false;
 
+        // Analytics for total time spent in the video
+        public float totalTimeSpent = 0f;
+
         bool pointerOut = false;
         #endregion
 
@@ -63,7 +66,6 @@ namespace BR.App
                 shouldDisappear = false;
                 PerformForcedFadeOut(0, () =>
                 {
-
                     shouldReposition = true;
                     // Disable the collider on the menu
                     GetComponent<MeshCollider>().enabled = false;
@@ -73,6 +75,9 @@ namespace BR.App
             // Update the progressbar is the video is playing
             if (currentVideoPlayer != null && currentVideoPlayer.mediaPlayer.Control.IsPlaying())
             {
+                // Update the total time on the video player
+                totalTimeSpent += Time.deltaTime;
+
                 float currentTimeMs = currentVideoPlayer.mediaPlayer.Control.GetCurrentTimeMs();
                 float totalTimeMs = currentVideoPlayer.mediaPlayer.Info.GetDurationMs();
 
@@ -87,8 +92,10 @@ namespace BR.App
                 }
             }
 
+            // Show menu only if error canvas is not active
             // Handle opening and closing of the menu
-            if ((Input.GetMouseButtonUp(0) || OVRInput.GetUp(OVRInput.Button.One) || OVRInput.GetUp(OVRInput.Button.PrimaryIndexTrigger)) && viewLoaded)
+            if ((Input.GetMouseButtonUp(0) || OVRInput.GetUp(OVRInput.Button.One) || OVRInput.GetUp(OVRInput.Button.PrimaryIndexTrigger)) && viewLoaded
+                && GameObject.Find("ErrorCanvas(Clone)") == null)
             {
                 if (shouldReposition)
                 {
@@ -233,6 +240,8 @@ namespace BR.App
 
                 // Mesh Collider
                 GetComponent<MeshCollider>().enabled = true;
+
+                
             }
         }
 
@@ -286,7 +295,7 @@ namespace BR.App
 			r.Add (ErrorDetail.ResponseType.ACCEPT);
 
 			ed.SetResponseTypes (r);
-			*/
+			
 
             // Add responses to dictionary
             ed.AddToDictionary(ErrorDetail.ResponseType.ACCEPT, new UnityEngine.Events.UnityAction(delegate
@@ -294,6 +303,7 @@ namespace BR.App
                 ViewManagerUtility.Instance().RemoveCanvasFromCurrentView();
             }));
             ApplicationController.Instance().OpenErrorView(ed);
+            */
         }
 
         public void OnPointerEnter()
@@ -379,6 +389,11 @@ namespace BR.App
             // Seek to the position
             float scrubTo = videoSeekbar.value * currentVideoPlayer.mediaPlayer.Info.GetDurationMs();
 
+            // Send analytics event
+            AnalyticsManager.Instance().SendSeekbarAnalytics("buttonUp",
+                scrubTo / 1000,
+                currentVideoPlayer.currentVideo.name,
+                currentVideoPlayer.currentVideo.gid);
 
             currentVideoPlayer.mediaPlayer.Control.Seek(scrubTo);
             
@@ -408,6 +423,12 @@ namespace BR.App
 
         public void SeekbarPointerDown()
         {
+            // Send analytics event
+            AnalyticsManager.Instance().SendSeekbarAnalytics("buttonDown",
+                currentVideoPlayer.mediaPlayer.Control.GetCurrentTimeMs() / 1000,
+                currentVideoPlayer.currentVideo.name,
+                currentVideoPlayer.currentVideo.gid);
+
             // Change the flag
             isScrubbing = true;
 
