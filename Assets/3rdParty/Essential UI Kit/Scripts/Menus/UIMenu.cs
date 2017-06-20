@@ -41,7 +41,7 @@ namespace MA{
 		}
 		public void openNext(UIMenu next)
 		{
-			if(sequential){
+            if (sequential){
 				//call the other menu's open Menu after this menu is done closing
 				this.close(()=>{
 					next.open(()=>{
@@ -64,15 +64,18 @@ namespace MA{
 		}
 		public static void returnToHigherMenu()
 		{
-			if(currentMenu != null && currentMenu.higerMenu != null) currentMenu.openNext(currentMenu.higerMenu);
+            if (currentMenu != null &&currentMenu.higerMenu != null)
+            {
+                currentMenu.openNext(currentMenu.higerMenu);
+            }
 		}
 		public void returnToHigherMenuInstanceMethod()
 		{
-			returnToHigherMenu();
+            returnToHigherMenu();
 		}
 		public void close (Action onFinished)
 		{
-			foreach(IMenuTransition animatable in animatables)
+            foreach (IMenuTransition animatable in animatables)
 			{
 				animatable.closeAnimation (() => {});
 			}

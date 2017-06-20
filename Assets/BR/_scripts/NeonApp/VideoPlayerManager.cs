@@ -14,6 +14,7 @@ using BR.BRUtilities;
 using RenderHeads.Media.AVProVideo;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.Events;
 
 namespace BR.App
 {
@@ -59,6 +60,41 @@ namespace BR.App
                     CUIGazePointer.instance.HideLoadingReticle();
                 }
             }
+
+            
+            // DELETE
+            if (Input.GetKeyUp(KeyCode.E))
+            {
+                // Setup a new errordetail
+                ErrorDetail ed = new ErrorDetail();
+                ed.SetErrorTitle("Wi-Fi Unavailable");
+                ed.SetErrorDescription("We could not detect a Wi-Fi " +
+                    "connection. To continue, please check your Wi-Fi connection, " +
+                    "and try again.");
+
+                // Associate this error detail with an action
+                // Add a reset button to the panel
+                ed.AddToDictionary(ErrorDetail.ResponseType.RETRY, new UnityEngine.Events.UnityAction(delegate
+                {
+                    StartCoroutine(CheckForInternetAgain(2f, new UnityAction(delegate { SetupVideoPlayer(); })));
+                // StartCoroutine(CheckForInternetAgain(2f, new UnityAction( delegate { mediaPlayer.Play(); })));
+            }));
+
+                ed.AddToDictionary(ErrorDetail.ResponseType.IGNORE, new UnityEngine.Events.UnityAction(delegate
+                {
+                    ViewManagerUtility.Instance().RemoveCanvasFromCurrentView(new UnityAction(
+                                () => ViewManagerUtility.Instance().CloseVideoView()));
+                    // ViewManagerUtility.Instance().CloseErrorView();
+                    // ViewManagerUtility.Instance().CloseVideoView();
+                    // ViewManagerUtility.Instance().CloseVideoView();
+                }));
+                ApplicationController.Instance().OpenErrorView(ed);
+
+                // Hide the loading reticle
+                CUIGazePointer.instance.HideLoadingReticle();
+            }
+            // ------
+            
         }
 
         #endregion
@@ -108,6 +144,9 @@ namespace BR.App
             {
                 fileLocation = MediaPlayer.FileLocation.RelativeToStreamingAssetsFolder;
             }
+
+            // Reset the video time spent
+            videoPlayerMenu.totalTimeSpent = 0f;
 
             mediaPlayer.OpenVideoFromFile(fileLocation, video.streamUrl, true);
 
@@ -168,15 +207,20 @@ namespace BR.App
                 string cat = (currentVideo.categories != null) ? currentVideo.categories[0].ToString() : "";
                 // Log the previous video before going out
                 AnalyticsManager.Instance().SendVideoAnalytics(currentVideo.name,
-                    mediaPlayer.Control.GetCurrentTimeMs() / mediaPlayer.Info.GetDurationMs() * 100,
+                    //mediaPlayer.Control.GetCurrentTimeMs() / mediaPlayer.Info.GetDurationMs() * 100,
+                    videoPlayerMenu.totalTimeSpent / mediaPlayer.Info.GetDurationMs() * 100,
                     cat,
                     currentVideo.userHandle,
-                    currentVideo.uniqueId);
+                    currentVideo.gid);
 
                 // Also send data about the video being clicked but from "Next" Button
                 AnalyticsManager.Instance().SendButtonClickAnalytics("video", "videoOnNext", nextVideo.name);
 
                 AudioController.Instance().PlayOneShot(ApplicationController.Instance().videoClickAudioClip);
+
+                // Reset number of tries
+                numberOfTries = 0;
+
                 // see if the next video is of the same type as the current video
                 if (nextVideo.type == currentVideo.type)
                 {
@@ -244,41 +288,47 @@ namespace BR.App
                     break;
                 case MediaPlayerEvent.EventType.Stalled:
                     // Debug.Log ("Stalled");
-                    CUIGazePointer.instance.ShowLoadingReticle();
+                    // CUIGazePointer.instance.ShowLoadingReticle();
                     //videoPlayerMenu.ShowMenuForced (true);
                     break;
                 case MediaPlayerEvent.EventType.Error:
-                    if (numberOfTries < 3)
+                    
+                    if (numberOfTries < 2)
                     {
                         SetupVideoPlayer();
                         // Debug.Log("Loading again");
                     }
                     else
                     {
-                        // Debug.Log("Showing Error");
-
-                        // Show error
+                        // Setup a new errordetail
                         ErrorDetail ed = new ErrorDetail();
-                        ed.SetErrorTitle("Problem loading video");
-                        ed.SetErrorDescription("Your device's internet connection has been interrupted. Please try reconnecting before continuing");
+                        ed.SetErrorTitle("Wi-Fi Unavailable");
+                        ed.SetErrorDescription("We could not detect a Wi-Fi " +
+                            "connection. To continue, please check your Wi-Fi connection, " +
+                            "and try again.");
 
                         // Associate this error detail with an action
-                        ed.AddToDictionary(ErrorDetail.ResponseType.CANCEL, new UnityEngine.Events.UnityAction(delegate
+                        // Add a reset button to the panel
+                        ed.AddToDictionary(ErrorDetail.ResponseType.RETRY, new UnityEngine.Events.UnityAction(delegate
                         {
-                            //ViewManagerUtility.Instance().CloseVideoView();
-                            // Call back button pressed to close the error view
-                            ViewManagerUtility.Instance().BackButtonPressed();
-
+                            StartCoroutine(CheckForInternetAgain(2f, new UnityAction(delegate
+                            {
+                                ViewManagerUtility.Instance().CloseErrorView();
+                                SetupVideoPlayer();
+                            })));
+                            // StartCoroutine(CheckForInternetAgain(2f, new UnityAction( delegate { mediaPlayer.Play(); })));
                         }));
 
-                        // Add a try again button
-                        ed.AddToDictionary(ErrorDetail.ResponseType.SETTINGS, new UnityEngine.Events.UnityAction(delegate
+                        ed.AddToDictionary(ErrorDetail.ResponseType.IGNORE, new UnityAction(delegate
                         {
-                            ViewManagerUtility.Instance().BackButtonPressed();
-                            OVRManager.PlatformUIGlobalMenu();
+                            ViewManagerUtility.Instance().RemoveCanvasFromCurrentView(new UnityAction(
+                                () => ViewManagerUtility.Instance().CloseVideoView()));
+                            // ViewManagerUtility.Instance().CloseVideoView();
                         }));
-
                         ApplicationController.Instance().OpenErrorView(ed);
+
+                        // Hide the loading reticle
+                        CUIGazePointer.instance.HideLoadingReticle();
                     }
                     break;
             }
@@ -296,8 +346,11 @@ namespace BR.App
             // Stop listening to events
             Camera.main.GetComponent<VRScreenFade>().onFadeInEnd -= VideoViewFadeInComplete;
 
-            // Setup the menu
-            videoPlayerMenu.SetupMenu(currentVideo);
+            if (numberOfTries < 2)
+            {
+                // Setup the menu
+                videoPlayerMenu.SetupMenu(currentVideo);
+            }
         }
 
         /// <summary>
@@ -320,6 +373,32 @@ namespace BR.App
             mediaPlayer.Stop();
             // Setup the video player
             SetupVideoPlayer(nextVideo);
+        }
+
+        IEnumerator CheckForInternetAgain(float time, UnityAction functionToCall)
+        {
+            GameObject ErrorCanvas = GameObject.Find("ErrorCanvas(Clone)");
+            Animator animator = ErrorCanvas.GetComponent<Animator>();
+            animator.SetBool("shouldShowSpinner", true);
+
+            yield return new WaitForSeconds(time);
+
+            // Stop the spinner
+            animator.SetBool("shouldShowSpinner", false);
+
+            if (Application.internetReachability == NetworkReachability.ReachableViaLocalAreaNetwork)
+            {
+                ViewManagerUtility.Instance().RemoveCanvasFromCurrentView();
+                functionToCall();
+            }
+            else
+            {
+                if (ErrorCanvas != null)
+                {
+
+                    animator.SetBool("shouldShake", true);
+                }
+            }
         }
 
         #endregion

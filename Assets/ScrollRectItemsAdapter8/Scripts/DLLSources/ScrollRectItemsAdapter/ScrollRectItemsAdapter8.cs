@@ -18,10 +18,10 @@ namespace frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter
     /// <para>HOW IT WORKS (it's recommended to manually go through example code in order to fully understand the mechanism):</para>
     /// <para>1. create your own implementation of BaseItemViewsHolder, let's name it MyItemViewsHolder</para>
     /// <para>2. create your own implementation of BaseParams (if needed), let's name it MyParams</para>
-    /// <para>3. create your own implementation of ScrollRectItemsAdapter8&lt;MyParams, MyItemViewsHolder&gt;, let's name it MyScrollRectItemsAdapter</para>
+    /// <para>3. create your own implementation of ScrollRectItemsAdapter8<MyParams, MyItemViewsHolder>, let's name it MyScrollRectItemsAdapter</para>
     /// <para>4. instantiate MyScrollRectItemsAdapter</para>
     /// <para>5. call MyScrollRectItemsAdapter.ChangeItemCountTo(int) once (and any time your dataset is changed) and the following things will happen:</para>
-    /// <para>    5.1. if the scroll rect has vertical scrolling, MyScrollRectItemsAdapter.GetItemHeight(int) will be called &lt;count&gt; times (with index going from 0 to &lt;count-1&gt;)</para>
+    /// <para>    5.1. if the scroll rect has vertical scrolling, MyScrollRectItemsAdapter.GetItemHeight(int) will be called <count> times (with index going from 0 to <count-1>)</para>
     /// <para>       else if the scroll rect has horizontal scrolling, MyScrollRectItemsAdapter.GetItemWidth(int) will ...[idem above]...</para>
     /// <para>    5.2. CreateViewsHolder(int) will be called for each view that needs created. Once a view is created, it'll be re-used when it goes off-viewport </para>
     /// <para>          - newOrRecycledViewsHolder.root will be null, so you need to instantiate your prefab (or whatever), assign it and call newOrRecycledViewsHolder.CollectViews(). Alternatively, you can call its <see cref="AbstractViewHolder.Init(GameObject, int, bool, bool)"/> method, which can do a lot of things for you, mainly instantiate the prefab and (if you want) call CollectViews()</para>
