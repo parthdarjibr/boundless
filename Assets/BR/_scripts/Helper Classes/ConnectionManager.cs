@@ -102,6 +102,7 @@ namespace BR.App {
 			}
 		}
 
+        /*
         private void Update()
         {
             if(Time.time - startTime > checkingInterval)
@@ -113,7 +114,7 @@ namespace BR.App {
 
                 startTime = Time.time;
             }
-        }
+        }*/
 
         private void Start()
         {

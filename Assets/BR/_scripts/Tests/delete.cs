@@ -2,7 +2,9 @@
 using System.Collections;
 
 public class delete : MonoBehaviour {
+
     float time = 0f;
+
 	// Use this for initialization
 	void Start () {
 	

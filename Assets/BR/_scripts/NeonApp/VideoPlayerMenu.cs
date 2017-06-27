@@ -240,8 +240,6 @@ namespace BR.App
 
                 // Mesh Collider
                 GetComponent<MeshCollider>().enabled = true;
-
-                
             }
         }
 
@@ -390,7 +388,7 @@ namespace BR.App
             float scrubTo = videoSeekbar.value * currentVideoPlayer.mediaPlayer.Info.GetDurationMs();
 
             // Send analytics event
-            AnalyticsManager.Instance().SendSeekbarAnalytics("buttonUp",
+            AnalyticsManager.Instance().SendSeekbarAnalytics("seekerDrop",
                 scrubTo / 1000,
                 currentVideoPlayer.currentVideo.name,
                 currentVideoPlayer.currentVideo.gid);
@@ -424,7 +422,7 @@ namespace BR.App
         public void SeekbarPointerDown()
         {
             // Send analytics event
-            AnalyticsManager.Instance().SendSeekbarAnalytics("buttonDown",
+            AnalyticsManager.Instance().SendSeekbarAnalytics("seekerGrab",
                 currentVideoPlayer.mediaPlayer.Control.GetCurrentTimeMs() / 1000,
                 currentVideoPlayer.currentVideo.name,
                 currentVideoPlayer.currentVideo.gid);
