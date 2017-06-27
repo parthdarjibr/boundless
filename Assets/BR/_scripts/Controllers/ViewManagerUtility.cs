@@ -327,7 +327,6 @@ namespace BR.App
 
             // Check entitlement state
             Oculus.Platform.Entitlements.IsUserEntitledToApplication().OnComplete(EntitlementCheckCallback);
-            // StartCoroutine(homePrefab.GetComponent<HomePageLoader>().SetupHomeScreenOptimized());
 
             // Home page is setup in entitlement check handler          
         }
@@ -450,7 +449,14 @@ namespace BR.App
                             lastObject.GetMenu().close(delegate
                             {
                                 Destroy(lastObject.gameObject);
-                                CloseVideoView();
+                                // CloseVideoView();
+                                actionOnClose();
+                            });
+                        } else
+                        {
+                            lastObject.GetMenu().close(delegate
+                            {
+                                Destroy(lastObject.gameObject);
                             });
                         }
                     }
@@ -546,7 +552,7 @@ namespace BR.App
                         {
                             AnalyticsManager.Instance().SendVideoAnalytics(_videoPlayer.currentVideo.name,
                                 //(_videoPlayer.mediaPlayer.Control.GetCurrentTimeMs() / _videoPlayer.mediaPlayer.Info.GetDurationMs()) * 100,
-                                _videoPlayer.videoPlayerMenu.totalTimeSpent / _videoPlayer.mediaPlayer.Info.GetDurationMs() * 100,
+                                (_videoPlayer.videoPlayerMenu.totalTimeSpent / _videoPlayer.mediaPlayer.Info.GetDurationMs()) * 1000,
                                 cat,
                                 _videoPlayer.currentVideo.userHandle,
                                 _videoPlayer.currentVideo.gid);
@@ -960,13 +966,13 @@ namespace BR.App
                 // Entitlement check passed
                 // Load home page
                 // Check for internet 
-                if (!(Application.internetReachability == NetworkReachability.ReachableViaLocalAreaNetwork))
+                // if (!(Application.internetReachability == NetworkReachability.ReachableViaLocalAreaNetwork))
+                if (Application.internetReachability == NetworkReachability.NotReachable)
                 {
                     // Internet unreachable, show error
                     ErrorDetail ed = new ErrorDetail();
-                    ed.SetErrorTitle("Wi-Fi Unavailable");
-                    ed.SetErrorDescription("We could not detect a Wi-Fi " +
-                        "connection. To continue, please check your Wi-Fi connection, " +
+                    ed.SetErrorTitle("No Internet Connection");
+                    ed.SetErrorDescription("To continue, please check your internet connection, " +
                         "and try again.");
 
                     // Associate this error detail with actions

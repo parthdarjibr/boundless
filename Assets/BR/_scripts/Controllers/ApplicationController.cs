@@ -135,7 +135,6 @@ namespace BR.App
                 }
             }
 
-
 #if UNITY_EDITOR
                 if(Input.GetKeyUp(KeyCode.Escape)) {
 #elif UNITY_ANDROID
@@ -206,13 +205,13 @@ namespace BR.App
         public void OpenHomeView()
         {
             // Check for internet 
-            if (!(Application.internetReachability == NetworkReachability.ReachableViaLocalAreaNetwork))
+            // if (!(Application.internetReachability == NetworkReachability.ReachableViaLocalAreaNetwork))
+            if (Application.internetReachability == NetworkReachability.NotReachable)
             {
                 // Internet unreachable, show error
                 ErrorDetail ed = new ErrorDetail();
-                ed.SetErrorTitle("Wi-Fi Unavailable");
-                ed.SetErrorDescription("We could not detect a Wi-Fi " +
-                    "connection. To continue, please check your Wi-Fi connection, " +
+                ed.SetErrorTitle("No Internet Connection");
+                ed.SetErrorDescription("To continue, please check your internet connection," +
                     "and try again.");
 
                 // Associate this error detail with actions
@@ -266,17 +265,14 @@ namespace BR.App
 
         public void OpenInfluencerView(InfluencerDetail influencer)
         {
-
-            //if (!ConnectionManager.Instance().isNetworkAvailable)
-            if (!(Application.internetReachability == NetworkReachability.ReachableViaLocalAreaNetwork))
+            // if (!(Application.internetReachability == NetworkReachability.ReachableViaLocalAreaNetwork))
+            if (Application.internetReachability == NetworkReachability.NotReachable)
             {
                 // Setup a new errordetail
                 ErrorDetail ed = new ErrorDetail();
-                ed.SetErrorTitle("Wi-Fi Unavailable");
-                ed.SetErrorDescription("We could not detect a Wi-Fi " +
-                    "connection. To continue, please check your Wi-Fi connection, " +
+                ed.SetErrorTitle("No Internet Connection");
+                ed.SetErrorDescription("To continue, please check your internet connection, " +
                     "and try again.");
-
 
                 // Associate this error detail with an action
                 // Add a reset button to the panel
@@ -287,12 +283,10 @@ namespace BR.App
                         ViewManagerUtility.Instance().BackButtonPressed();
                         OpenInfluencerView(influencer);
                     })));
-                    //OpenInfluencerView(influencer);
                 }));
 
                 ed.AddToDictionary(ErrorDetail.ResponseType.IGNORE, new UnityEngine.Events.UnityAction(delegate
                 {
-                    // ViewManagerUtility.Instance().CloseErrorView();
                     ViewManagerUtility.Instance().BackButtonPressed();
                 }));
 
@@ -314,37 +308,97 @@ namespace BR.App
         public void OpenVideoPlayer(VideoDetail video)
         {
             // Check for internet 
-            if (!(Application.internetReachability == NetworkReachability.ReachableViaLocalAreaNetwork))
+            if (Application.internetReachability == NetworkReachability.ReachableViaCarrierDataNetwork)
             {
                 // Setup a new errordetail
                 ErrorDetail ed = new ErrorDetail();
-                ed.SetErrorTitle("Wi-Fi Unavailable");
+                ed.SetErrorTitle("Wi-Fi Disconnected");
                 ed.SetErrorDescription("We could not detect a Wi-Fi " +
-                    "connection. To continue, please check your Wi-Fi connection, " +
-                    "and try again.");
-
+                    "connection. Would you like to continue watching videos with " +
+                    "mobile data?");
 
                 // Associate this error detail with an action
                 // Add a reset button to the panel
+                ed.AddToDictionary(ErrorDetail.ResponseType.CANCEL, new UnityEngine.Events.UnityAction(delegate
+                {
+                    ViewManagerUtility.Instance().BackButtonPressed();
+                }));
+
+                ed.AddToDictionary(ErrorDetail.ResponseType.ACCEPT, new UnityEngine.Events.UnityAction(delegate
+                {
+                    ViewManagerUtility.Instance().BackButtonPressed();
+                    GameObject currentVideoPlayerPrefab;
+                    // Decide which video player to instantiate
+                    switch (video.type)
+                    {
+                        case VideoDetail.Type.MONO:
+                            currentVideoPlayerPrefab = videoPrefabMono;
+                            break;
+                        case VideoDetail.Type.STEREO:
+                            currentVideoPlayerPrefab = videoPrefabStereo;
+                            break;
+                        case VideoDetail.Type.VOLUMETRIC:
+                            currentVideoPlayerPrefab = videoPrefabVol;
+                            break;
+                        default:
+                            goto case VideoDetail.Type.MONO;
+                    }
+
+                    // Ask view controller to show the video
+                    ViewManagerUtility.Instance().SetupVideoView(video, currentVideoPlayerPrefab);
+                }));
+                OpenErrorView(ed);
+            }
+            else if(Application.internetReachability == NetworkReachability.NotReachable)
+            {
+                // Setup a new errordetail
+                ErrorDetail ed = new ErrorDetail();
+                ed.SetErrorTitle("No Internet Connection");
+                ed.SetErrorDescription("To continue, please check your internet connection, " +
+                    "and try again.");
+
+                // Associate this error detail with actions
                 ed.AddToDictionary(ErrorDetail.ResponseType.IGNORE, new UnityEngine.Events.UnityAction(delegate
                 {
-                    // ViewManagerUtility.Instance().CloseErrorView();
                     ViewManagerUtility.Instance().BackButtonPressed();
                 }));
 
                 ed.AddToDictionary(ErrorDetail.ResponseType.RETRY, new UnityEngine.Events.UnityAction(delegate
                 {
-                    StartCoroutine(CheckForInternetAgain(1f, new UnityAction(delegate
+                    StartCoroutine(CheckForWifiAgain(2f, new UnityAction(delegate
+                    {
+                        ViewManagerUtility.Instance().BackButtonPressed();
+                        GameObject currentVideoPlayerPrefab;
+                        // Decide which video player to instantiate
+                        switch (video.type)
+                        {
+                            case VideoDetail.Type.MONO:
+                                currentVideoPlayerPrefab = videoPrefabMono;
+                                break;
+                            case VideoDetail.Type.STEREO:
+                                currentVideoPlayerPrefab = videoPrefabStereo;
+                                break;
+                            case VideoDetail.Type.VOLUMETRIC:
+                                currentVideoPlayerPrefab = videoPrefabVol;
+                                break;
+                            default:
+                                // Open mono video by default
+                                currentVideoPlayerPrefab = videoPrefabMono;
+                                break;
+                        }
+                    }), new UnityAction(delegate
                     {
                         ViewManagerUtility.Instance().BackButtonPressed();
                         OpenVideoPlayer(video);
                     })));
+                    
                 }));
                 OpenErrorView(ed);
-                return;
             }
             else
             {
+                // Wifi available - setup as usual
+
                 GameObject currentVideoPlayerPrefab;
                 // Decide which video player to instantiate
                 switch (video.type)
@@ -385,11 +439,10 @@ namespace BR.App
 
             // Stop the spinner
             animator.SetBool("shouldShowSpinner", false);
-            
-            if (Application.internetReachability == NetworkReachability.ReachableViaLocalAreaNetwork)
+            if (!(Application.internetReachability == NetworkReachability.NotReachable))
             {
+                // Internet available either via Wi-Fi or data connection
                 internetAvailable = true;
-                // ViewManagerUtility.Instance().BackButtonPressed();
                 functionToCall();
             }
             else
@@ -403,7 +456,40 @@ namespace BR.App
             }
             internetStatusSet = true;
         }
-        
+
+        public IEnumerator CheckForWifiAgain(float time, UnityAction fnOnWifiAvailable, UnityAction fnOnDataAvailable)
+        {
+            GameObject ErrorCanvas = GameObject.Find("ErrorCanvas(Clone)");
+            Animator animator = ErrorCanvas.GetComponent<Animator>();
+            animator.SetBool("shouldShowSpinner", true);
+            internetStatusSet = true;
+
+            yield return new WaitForSeconds(time);
+
+            // Stop the spinner
+            animator.SetBool("shouldShowSpinner", false);
+            if (!(Application.internetReachability == NetworkReachability.NotReachable))
+            {
+                if (Application.internetReachability == NetworkReachability.ReachableViaLocalAreaNetwork)
+                {
+                    fnOnWifiAvailable();
+                } else
+                {
+                    fnOnDataAvailable();
+                }
+            }
+            else
+            {
+                if (ErrorCanvas != null)
+                {
+
+                    animator.SetBool("shouldShake", true);
+                }
+                internetAvailable = false;
+            }
+            internetStatusSet = true;
+        }
+
         #endregion
     }
 }
