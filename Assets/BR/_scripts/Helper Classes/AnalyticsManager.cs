@@ -43,7 +43,7 @@ namespace BR.BRUtilities {
 			// Setup analytics based on platform
 			#if UNITY_EDITOR
 
-			registerAnalytics = false;
+			registerAnalytics = true;
 
 			#elif UNITY_ANDROID
 
@@ -90,7 +90,8 @@ namespace BR.BRUtilities {
 					videoUUID = "NoVideoUUID";
 			
 				Analytics.CustomEvent ("VideoWatched", new Dictionary<string, object> {
-					//{ "UserUUID", PlayerPrefs.GetString ("UniqueID") },
+                    //{ "UserUUID", PlayerPrefs.GetString ("UniqueID") },
+                    { "EventUUID", GenerateEventUUID() },
 					{ "UserUUID", deviceID },
 					{ "VideoName", videoName },
 					{ "SpentTime", spentTimePercentage },
@@ -104,10 +105,46 @@ namespace BR.BRUtilities {
 			}
 		}
 
-		public void SendCategoryAnalytics(string categoryName) {
+        public void SendVideoBufferAnalytics(string videoName, float bufferTime, float totalVideoTime, string videoCategory, string creatorName, string videoUUID)
+        {
+            if (registerAnalytics)
+            {
+                // handle null values in case they exist
+                if (videoName == null)
+                    videoName = "NoName";
+                if (float.IsNaN(bufferTime))
+                    bufferTime = -1;
+                if (float.IsNaN(totalVideoTime))
+                    totalVideoTime = -1;
+                if (videoCategory == null)
+                    videoCategory = "NoCategory";
+                if (creatorName == null)
+                    creatorName = "NoCreatorName";
+                if (videoUUID == null)
+                    videoUUID = "NoVideoUUID";
+
+                Analytics.CustomEvent("VideoWatched", new Dictionary<string, object> {
+                    //{ "UserUUID", PlayerPrefs.GetString ("UniqueID") },
+                    { "EventUUID", GenerateEventUUID() },
+                    { "UserUUID", deviceID },
+                    { "VideoName", videoName },
+                    { "BufferTime", bufferTime },
+                    { "VideoLength", totalVideoTime },
+                    { "VideoCategory", videoCategory },
+                    { "CreatorName", creatorName },
+                    { "VideoUUID", videoUUID },
+                    { "CustomTS", DateTime.Now.ToString () }
+                });
+
+                Debug.Log("Spent time: " + bufferTime);
+            }
+        }
+
+        public void SendCategoryAnalytics(string categoryName) {
 			if (registerAnalytics) {
 				Analytics.CustomEvent ("CategoryClicked", new Dictionary<string, object> {
-					{ "CategoryName", categoryName },
+                    { "EventUUID", GenerateEventUUID() },
+                    { "CategoryName", categoryName },
 					//{ "UserUUID", PlayerPrefs.GetString ("UniqueID") },
 					{ "UserUUID", deviceID },
 					{ "CustomTS", DateTime.Now.ToString () }
@@ -124,7 +161,8 @@ namespace BR.BRUtilities {
 		public void SendButtonClickAnalytics(string btnCategory, string btnType, string btnValue) {
 			if (registerAnalytics) {
 				Analytics.CustomEvent ("ButtonClicked", new Dictionary<string, object> {
-					{ "ButtonCategory", btnCategory },
+                    { "EventUUID", GenerateEventUUID() },
+                    { "ButtonCategory", btnCategory },
 					{ "ButtonType", btnType },
 					{ "ButtonValue", btnValue },
 					{ "UserUUID", deviceID },
@@ -140,7 +178,8 @@ namespace BR.BRUtilities {
 		public void SendNoWifiAnalytics() {
 			if (registerAnalytics) {
 				Analytics.CustomEvent ("No Wi-Fi", new Dictionary<string, object> {
-					{ "UserUUID", deviceID }
+                    { "EventUUID", GenerateEventUUID() },
+                    { "UserUUID", deviceID }
 					//{ "UserUUID", PlayerPrefs.GetString ("UniqueID") }
 				});
 			}
@@ -163,6 +202,7 @@ namespace BR.BRUtilities {
 
                 Analytics.CustomEvent("ButtonClicked", new Dictionary<string, object>
                 {
+                    { "EventUUID", GenerateEventUUID() },
                     {"ButtonCategory", "VideoSeekbar" },
                     { "ButtonType", buttonType },
                     { "ClickTime",  clickTime},
@@ -173,6 +213,15 @@ namespace BR.BRUtilities {
             }
         }
 
-		#endregion
-	}
+        #endregion
+
+        #region PRIVATE METHODS
+
+        private string GenerateEventUUID()
+        {
+            return Guid.NewGuid().ToString();
+        }
+
+        #endregion
+    }
 }

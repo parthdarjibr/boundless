@@ -169,17 +169,17 @@ namespace frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter
         /// <summary> Utility to smooth scroll. Identical to ScrollTo(..) in functionality, but the scroll is animated (scroll is done gradually, throughout multiple frames) </summary>
         /// <param name="onProgress">gets the progress (0f..1f) and returns if the scrolling should continue</param>
         /// <returns>if no smooth scroll animation was already playing. if it was, then no new animation will begin</returns>
-        public bool SmoothScrollTo(int itemIndex, float duration, float normalizedOffsetFromViewportStart = 0f, float normalizedPositionOfItemPivotToUse = 0f, Func<float, bool> onProgress=null)
+        public bool SmoothScrollTo(int itemIndex, float duration, float normalizedOffsetFromViewportStart = 0f, float normalizedPositionOfItemPivotToUse = 0f, Func<float, bool> onProgress=null, Action onComplete = null)
         {
             if (_SmoothScrollCoroutine != null)
                 return false;
 
-            _SmoothScrollCoroutine = _MonoBehaviourHelper.StartCoroutine(SmoothScrollProgressCoroutine(itemIndex, duration, normalizedOffsetFromViewportStart, normalizedPositionOfItemPivotToUse, onProgress));
+            _SmoothScrollCoroutine = _MonoBehaviourHelper.StartCoroutine(SmoothScrollProgressCoroutine(itemIndex, duration, normalizedOffsetFromViewportStart, normalizedPositionOfItemPivotToUse, onProgress, onComplete));
 
             return true;
         }
 
-        IEnumerator SmoothScrollProgressCoroutine(int itemIndex, float duration, float normalizedOffsetFromViewportStart = 0f, float normalizedPositionOfItemPivotToUse = 0f, Func<float, bool> onProgress=null)
+        IEnumerator SmoothScrollProgressCoroutine(int itemIndex, float duration, float normalizedOffsetFromViewportStart = 0f, float normalizedPositionOfItemPivotToUse = 0f, Func<float, bool> onProgress=null, Action onComplete=null)
         {
             float minContentOffsetFromVPAllowed = _InternalState.viewportSize - _InternalState.contentPanelSize;
             // Positive values indicate CT is smaller than VP, so no scrolling can be done
@@ -227,6 +227,11 @@ namespace frame8.Logic.Misc.Visual.UI.ScrollRectItemsAdapter
             // Assures the end result is the expected one
             if (notCanceled)
                 ScrollTo(itemIndex, normalizedOffsetFromViewportStart, normalizedPositionOfItemPivotToUse);
+
+            if(onComplete != null)
+            {
+                onComplete();
+            }
 
             _SmoothScrollCoroutine = null;
             yield break;

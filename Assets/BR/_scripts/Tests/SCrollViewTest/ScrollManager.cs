@@ -38,10 +38,7 @@ public class ScrollManager : MonoBehaviour
     /// </summary>
     public bool shouldScroll = false;
 
-    /// <summary>
-    /// Scroll triggers for Oculus Touch Controllers
-    /// </summary>
-    public bool shouldScrollUp = false, shouldScrollDown = false;
+    private bool isScrolling = false;
 
     private int currentIndex = 1;
     private int totalElements = 0;
@@ -105,7 +102,7 @@ public class ScrollManager : MonoBehaviour
             }
         }
 
-        if(shouldScroll)
+        if(!isScrolling)
         {
             if (Input.GetKeyDown(KeyCode.UpArrow))
             {
@@ -162,7 +159,7 @@ public class ScrollManager : MonoBehaviour
     #region EVENT HANDLERS
     void OVRTouchpad_TouchHandler(object sender, System.EventArgs e)
     {
-        if (shouldScroll)
+        if (shouldScroll && !isScrolling)
         {
             OVRTouchpad.TouchArgs ta = (OVRTouchpad.TouchArgs)e;
 
@@ -174,68 +171,8 @@ public class ScrollManager : MonoBehaviour
                 case OVRTouchpad.TouchEvent.Down:
                     PerformScroll(ScrollDirection.Down);
                     break;
-                    /*
-                case OVRTouchpad.TouchEvent.Up:
-                    Debug.Log ("UP");
-                    if (currentIndex > amountToScroll)
-                        scrollDirection = -1;
-                    else
-                        scrollDirection = 0;
-                    break;
-                case OVRTouchpad.TouchEvent.Down:
-                    Debug.Log ("DOWN");
-                    if (currentIndex < totalElements - amountToScroll)
-                        scrollDirection = 1;
-                    else
-                        scrollDirection = 0;
-                    break;
-                case OVRTouchpad.TouchEvent.Left:
-                    break;
-                case OVRTouchpad.TouchEvent.Right:
-                    break;
-                }
-
-                // Scroll the view in a direction
-                switch (panelType) {
-
-                case PanelType.CREATOR_ON_HOME:
-                    Debug.Log (creatorGridAdapter.GetItemCount ().ToString());
-                    scrollTo = scrollDirection > 0 ? currentIndex + amountToScroll : currentIndex - amountToScroll;
-                    Debug.Log(scrollTo);
-                    if (scrollDirection > 0) {
-                        // Scroll down
-                        creatorGridAdapter.SmoothScrollTo (creatorGridParams.GetGroupIndex (scrollTo), 0.5f, null);
-                        currentIndex += amountToScroll;
-
-                    } else if (scrollDirection < 0) {
-                        // Scroll up
-                        creatorGridAdapter.SmoothScrollTo (creatorGridParams.GetGroupIndex (scrollTo), 0.5f, null);
-                        currentIndex -= amountToScroll;
-                    }
-                    break;
-                case PanelType.VIDEO_ON_CREATOR:
-                case PanelType.VIDEO_ON_HOME:
-                    scrollTo = scrollDirection > 0 ? currentIndex + amountToScroll : currentIndex - amountToScroll;
-                    Debug.Log(scrollTo);
-                    if (scrollDirection > 0) {
-                        // Scroll down 
-                        videoGridAdapter.SmoothScrollTo (videoGridParams.GetGroupIndex (scrollTo), 0.5f, null);
-                        currentIndex += amountToScroll;
-
-                    } else if (scrollDirection < 0) {
-                        // Scroll up
-                        videoGridAdapter.SmoothScrollTo (videoGridParams.GetGroupIndex (scrollTo), 0.5f, null);
-                        currentIndex -= amountToScroll;
-
-                    }
-                    break;
-                default:
-                    break;
-                }
-                */
-                    //shouldScroll = false;
             }
-            shouldScroll = false;
+            // shouldScroll = false;
         }
     }
     #endregion
@@ -243,13 +180,8 @@ public class ScrollManager : MonoBehaviour
     #region HELPER METHODS
     void PerformScroll(ScrollDirection d)
     {
-        /*
-        // Send pointer up event to current pressed gameobject if available
-        if(currentPressedGo != null)
-        {
-            ExecuteEvents.Execute(currentPressedGo, new PointerEventData(EventSystem.current), ExecuteEvents.pointerUpHandler);
-            currentPressedGo = null;
-        }*/
+        isScrolling = true;
+
         if (currentPointerEventData != null && currentPointerEventData.pointerPress != currentPointerEventData.pointerDrag)
         {
             ExecuteEvents.Execute(currentPointerEventData.pointerPress, currentPointerEventData, ExecuteEvents.pointerUpHandler);
@@ -279,20 +211,29 @@ public class ScrollManager : MonoBehaviour
         // Scroll the view in a direction
         switch (panelType)
         {
-
             case PanelType.CREATOR_ON_HOME:
                 scrollTo = scrollDirection > 0 ? currentIndex + amountToScroll : currentIndex - amountToScroll;
                 if (scrollDirection > 0)
                 {
                     // Scroll down
-                    creatorGridAdapter.SmoothScrollTo(creatorGridParams.GetGroupIndex(scrollTo), 0.5f);
+                    creatorGridAdapter.SmoothScrollTo(creatorGridParams.GetGroupIndex(scrollTo), 0.5f, 0, 0, null, new Action(delegate
+                    {
+                        isScrolling = false;
+                        shouldScroll = false;
+                    }));
                     currentIndex += amountToScroll;
                 }
                 else if (scrollDirection < 0)
                 {
                     // Scroll up
-                    creatorGridAdapter.SmoothScrollTo(creatorGridParams.GetGroupIndex(scrollTo), 0.5f);
+                    creatorGridAdapter.SmoothScrollTo(creatorGridParams.GetGroupIndex(scrollTo), 0.5f, 0, 0, null, new Action(delegate {
+                        isScrolling = false;
+                        shouldScroll = false;
+                    }));
                     currentIndex -= amountToScroll;
+                } else
+                {
+                    isScrolling = false;
                 }
                 break;
             case PanelType.VIDEO_ON_CREATOR:
@@ -301,14 +242,25 @@ public class ScrollManager : MonoBehaviour
                 if (scrollDirection > 0)
                 {
                     // Scroll down 
-                    videoGridAdapter.SmoothScrollTo(videoGridParams.GetGroupIndex(scrollTo), 0.5f);
+                    videoGridAdapter.SmoothScrollTo(videoGridParams.GetGroupIndex(scrollTo), 0.5f, 0, 0, null, new Action(delegate
+                    {
+                        isScrolling = false;
+                        shouldScroll = false;
+                    }));
                     currentIndex += amountToScroll;
                 }
                 else if (scrollDirection < 0)
                 {
                     // Scroll up
-                    videoGridAdapter.SmoothScrollTo(videoGridParams.GetGroupIndex(scrollTo), 0.5f);
+                    videoGridAdapter.SmoothScrollTo(videoGridParams.GetGroupIndex(scrollTo), 0.5f, 0, 0, null, new Action(delegate
+                    {
+                        isScrolling = false;
+                        shouldScroll = false;
+                    }));
                     currentIndex -= amountToScroll;
+                } else
+                {
+                    isScrolling = false;
                 }
                 break;
             default:

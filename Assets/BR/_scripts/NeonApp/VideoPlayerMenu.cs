@@ -208,7 +208,8 @@ namespace BR.App
                 videoSeekbar.minValue = 0;
                 // videoSeekbar.maxValue = currentVideoPlayer.mediaPlayer.Info.GetDurationMs();
 
-                txtBeginTime.text = "0:00";
+                txtBeginTime.text = "-:--";
+                txtEndTime.text = "-:--";
                 txtCurrentTime.gameObject.SetActive(false);
 
                 // Disable the seekbar until the video starts
@@ -232,7 +233,7 @@ namespace BR.App
                     currentVideoPlayer.OnVideoPlayerLoaded();
                 }
 
-                viewLoaded = true;
+                // viewLoaded = true;
 
                 // Setup the menu for auto hide 
                 startTime = Time.time;
@@ -325,7 +326,7 @@ namespace BR.App
             if (!isScrubbing)
             {
                 ExecuteEvents.Execute(btnNext.gameObject, new PointerEventData(EventSystem.current), ExecuteEvents.pointerExitHandler);
-                if (shouldAutoHide)
+                if (shouldAutoHide && viewLoaded)
                 {
                     PerformForcedFadeOut(0, () =>
                     {
@@ -372,7 +373,6 @@ namespace BR.App
 
 
         // Seeking event handlers
-        bool _wasPlayingOnScrub = false;
         bool isScrubbing = false;
         public void OnSeekbarValueChanged(float val)
         {

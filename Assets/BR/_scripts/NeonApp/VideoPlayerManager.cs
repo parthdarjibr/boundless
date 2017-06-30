@@ -37,6 +37,9 @@ namespace BR.App
         public Sprite playIdle, pauseIdle;
         public MediaPlayer.FileLocation fileLocation;
         // private int numberOfTries = 0;
+        private bool nextRequested = false;
+
+        public float totalBufferTime = 0f;
 
         #endregion
 
@@ -51,17 +54,22 @@ namespace BR.App
                 {
                     //videoPlayerMenu.ShowMenuForced (true);
                     CUIGazePointer.instance.ShowLoadingReticle();
+
+                    // Calculate the video buffering time
+                    totalBufferTime += Time.deltaTime;
                 }
-                else if (mediaPlayer.Control.IsPlaying())
+                if (mediaPlayer.Control.IsPlaying())
                 {
                     //videoPlayerMenu.ShowMenuForced (false);
                     CUIGazePointer.instance.HideLoadingReticle();
                 }
 
+                
                 // Check for video finished
-                if (mediaPlayer.Control.IsFinished())
+                if (mediaPlayer.Control.IsFinished() && !nextRequested)
                 {
                     Debug.Log("Finished Playing");
+                    nextRequested = true;
                     // ExecuteEvents.Execute(videoPlayerMenu.btnNext.gameObject, new PointerEventData(EventSystem.current), ExecuteEvents.pointerClickHandler);
                     PlayNextVideo();
                 }
@@ -153,6 +161,7 @@ namespace BR.App
 
             // Reset the video time spent
             videoPlayerMenu.totalTimeSpent = 0f;
+            totalBufferTime = 0f;
 
             mediaPlayer.OpenVideoFromFile(fileLocation, video.streamUrl, true);
 
@@ -161,11 +170,10 @@ namespace BR.App
 
             // Change the reticle to red
             CUIGazePointer.instance.ShowLoadingReticle(true, "Loading...");
-
-            /*
+            
             mediaPlayer.Events.RemoveAllListeners();
             // Listen to video player events
-            mediaPlayer.Events.AddListener(OnVideoEvent);*/
+            mediaPlayer.Events.AddListener(OnVideoEvent);
         }
 
         public void TogglePlayback()
@@ -204,6 +212,24 @@ namespace BR.App
 
         public void PlayNextVideo()
         {
+            // Get the first video category
+            string cat = (currentVideo.categories != null) ? currentVideo.categories[0].ToString() : "";
+            // Log the previous video before going out
+            AnalyticsManager.Instance().SendVideoAnalytics(currentVideo.name,
+                //mediaPlayer.Control.GetCurrentTimeMs() / mediaPlayer.Info.GetDurationMs() * 100,
+                (videoPlayerMenu.totalTimeSpent / mediaPlayer.Info.GetDurationMs()) * 1000,
+                cat,
+                currentVideo.userHandle,
+                currentVideo.gid);
+
+            // Send buffer analytics
+            AnalyticsManager.Instance().SendVideoBufferAnalytics(currentVideo.name,
+                totalBufferTime,
+                mediaPlayer.Info.GetDurationMs() * 1000,
+                cat,
+                currentVideo.userHandle,
+                currentVideo.gid);
+
             // Get the next video in the list
             VideoEdges edge = VideoPlaylistManager.Instance().GetNextVideoInPlaylist(currentVideo.idInPlaylist);
             // nextVideo = VideoPlaylistManager.Instance().GetNextVideoInPlaylist(currentVideo.idInPlaylist).node;
@@ -214,20 +240,11 @@ namespace BR.App
             else
             {
                 nextVideo = edge.node;
-                // Get the first video category
-                string cat = (currentVideo.categories != null) ? currentVideo.categories[0].ToString() : "";
-                // Log the previous video before going out
-                AnalyticsManager.Instance().SendVideoAnalytics(currentVideo.name,
-                    //mediaPlayer.Control.GetCurrentTimeMs() / mediaPlayer.Info.GetDurationMs() * 100,
-                    (videoPlayerMenu.totalTimeSpent / mediaPlayer.Info.GetDurationMs()) * 1000,
-                    cat,
-                    currentVideo.userHandle,
-                    currentVideo.gid);
-
-                // Also send data about the video being clicked but from "Next" Button
-                AnalyticsManager.Instance().SendButtonClickAnalytics("video", "videoOnNext", nextVideo.name);
 
                 AudioController.Instance().PlayOneShot(ApplicationController.Instance().videoClickAudioClip);
+                
+                // Also send data about the video being clicked but from "Next" Button
+                AnalyticsManager.Instance().SendButtonClickAnalytics("video", "videoOnNext", nextVideo.name);
 
                 // Reset number of tries
                 // numberOfTries = 0;
@@ -242,7 +259,8 @@ namespace BR.App
                     ErrorDetail ed = new ErrorDetail();
                     ed.SetErrorTitle("No Internet Connection");
                     ed.SetErrorDescription("To continue, please check your internet " +
-                        "connection, and try again.");
+                        "connection, and try again. " +
+                        "You may need to wait a few seconds before pressing 'Try Again' upon reconnection.");
 
                     // Associate this error detail with an action
                     // Add a reset button to the panel
@@ -330,7 +348,7 @@ namespace BR.App
         // Callback function to handle events
         private void OnVideoEvent(MediaPlayer mp, MediaPlayerEvent.EventType et, ErrorCode errorCode)
         {
-            Debug.Log(et.ToString());
+            // Debug.Log("Status: " + et.ToString());
             switch (et)
             {
                 case MediaPlayerEvent.EventType.ReadyToPlay:
@@ -344,6 +362,8 @@ namespace BR.App
                     // change sprite to pause state
                     videoPlayerMenu.btnPlay.spriteState = pauseState;
                     videoPlayerMenu.btnPlay.GetComponent<Image>().sprite = pauseIdle;
+                    videoPlayerMenu.viewLoaded = true;
+                    Debug.Log("View Loaded: " + videoPlayerMenu.viewLoaded);
                     //videoPlayerMenu.ShowMenuForced (false);
                     break;
                 case MediaPlayerEvent.EventType.FirstFrameReady:
@@ -351,13 +371,15 @@ namespace BR.App
                     CUIGazePointer.instance.HideLoadingReticle();
                     CUIGazePointer.instance.RequestHide();
                     break;
-                    /*
+                /*    
                 case MediaPlayerEvent.EventType.FinishedPlaying:
                     Debug.Log("Finished Playing");
                     // ExecuteEvents.Execute(videoPlayerMenu.btnNext.gameObject, new PointerEventData(EventSystem.current), ExecuteEvents.pointerClickHandler);
+                    // Disable view loaded
+                    videoPlayerMenu.viewLoaded = false;
                     PlayNextVideo();
                     break;
-                    */
+                */
                 case MediaPlayerEvent.EventType.Unstalled:
                     // Debug.Log ("Unstalled");
                     CUIGazePointer.instance.HideLoadingReticle();
@@ -384,7 +406,8 @@ namespace BR.App
                     ErrorDetail ed = new ErrorDetail();
                     ed.SetErrorTitle("No internet connection");
                     ed.SetErrorDescription("To continue, please check your internet connection, " +
-                        "and try again.");
+                        "and try again. " +
+                        "You may need to wait a few seconds before pressing 'Try Again' upon reconnection.");
 
                     // Associate this error detail with an action
                     // Add a reset button to the panel
@@ -428,6 +451,9 @@ namespace BR.App
             // Setup the listeners here
             mediaPlayer.Events.RemoveAllListeners();
             mediaPlayer.Events.AddListener(OnVideoEvent);
+
+            // Change the next flag
+            nextRequested = false;
 
             // if (numberOfTries < 2)
             // {

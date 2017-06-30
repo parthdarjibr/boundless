@@ -102,8 +102,8 @@ public class CreatorScrollRectItemsAdapter : GridAdapter<CreatorDetailParams, Cr
         viewHolder.btnInfluencer.onClick.RemoveAllListeners();
 		viewHolder.btnInfluencer.onClick.AddListener (delegate {
 			ExecuteEvents.Execute (viewHolder.btnInfluencer.gameObject, new PointerEventData (EventSystem.current), ExecuteEvents.pointerExitHandler);
-
-			InfluencerButtonClicked(model);
+            viewHolder.btnInfluencer.gameObject.GetComponent<Animator>().SetTrigger("Normal");
+            InfluencerButtonClicked(model);
 		});
 	}
 

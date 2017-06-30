@@ -544,6 +544,8 @@ namespace BR.App
                     {
                         // Get the video player manager
                         VideoPlayerManager _videoPlayer = currentVideoPlayerGO.GetComponentInChildren<VideoPlayerManager>();
+
+                        
                         // Handle analytics
                         // Get the first video category
                         string cat = (_videoPlayer.currentVideo.categories != null) ? _videoPlayer.currentVideo.categories[0].ToString() : "";
@@ -824,7 +826,7 @@ namespace BR.App
             if (videoManager != null)
             {
                 videoManager.mediaPlayer.Stop();
-                videoManager.mediaPlayer.CloseVideo();
+                // videoManager.mediaPlayer.CloseVideo();
                 videoManager.currentVideo = null;
             }
 
@@ -973,7 +975,8 @@ namespace BR.App
                     ErrorDetail ed = new ErrorDetail();
                     ed.SetErrorTitle("No Internet Connection");
                     ed.SetErrorDescription("To continue, please check your internet connection, " +
-                        "and try again.");
+                        "and try again. " +
+                        "You may need to wait a few seconds before pressing 'Try Again' upon reconnection.");
 
                     // Associate this error detail with actions
                     ed.AddToDictionary(ErrorDetail.ResponseType.SETTINGS, new UnityEngine.Events.UnityAction(delegate

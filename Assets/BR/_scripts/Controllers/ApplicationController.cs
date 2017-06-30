@@ -13,6 +13,7 @@ using BR.BRUtilities;
 using UnityEngine.SceneManagement;
 using System.Collections;
 using UnityEngine.Events;
+using UnityEngine.EventSystems;
 
 namespace BR.App
 {
@@ -212,7 +213,8 @@ namespace BR.App
                 ErrorDetail ed = new ErrorDetail();
                 ed.SetErrorTitle("No Internet Connection");
                 ed.SetErrorDescription("To continue, please check your internet connection," +
-                    "and try again.");
+                    "and try again. " +
+                    "You may need to wait a few seconds before pressing 'Try Again' upon reconnection.");
 
                 // Associate this error detail with actions
                 ed.AddToDictionary(ErrorDetail.ResponseType.SETTINGS, new UnityEngine.Events.UnityAction(delegate
@@ -272,7 +274,8 @@ namespace BR.App
                 ErrorDetail ed = new ErrorDetail();
                 ed.SetErrorTitle("No Internet Connection");
                 ed.SetErrorDescription("To continue, please check your internet connection, " +
-                    "and try again.");
+                    "and try again. " +
+                    "You may need to wait a few seconds before pressing 'Try Again' upon reconnection.");
 
                 // Associate this error detail with an action
                 // Add a reset button to the panel
@@ -355,7 +358,8 @@ namespace BR.App
                 ErrorDetail ed = new ErrorDetail();
                 ed.SetErrorTitle("No Internet Connection");
                 ed.SetErrorDescription("To continue, please check your internet connection, " +
-                    "and try again.");
+                    "and try again. " +
+                    "You may need to wait a few seconds before pressing 'Try Again' upon reconnection.");
 
                 // Associate this error detail with actions
                 ed.AddToDictionary(ErrorDetail.ResponseType.IGNORE, new UnityEngine.Events.UnityAction(delegate
@@ -386,6 +390,8 @@ namespace BR.App
                                 currentVideoPlayerPrefab = videoPrefabMono;
                                 break;
                         }
+                        // Ask view controller to show the video
+                        ViewManagerUtility.Instance().SetupVideoView(video, currentVideoPlayerPrefab);
                     }), new UnityAction(delegate
                     {
                         ViewManagerUtility.Instance().BackButtonPressed();
