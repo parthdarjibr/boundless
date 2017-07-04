@@ -557,7 +557,16 @@ namespace BR.App
                                 (_videoPlayer.videoPlayerMenu.totalTimeSpent / _videoPlayer.mediaPlayer.Info.GetDurationMs()) * 1000,
                                 cat,
                                 _videoPlayer.currentVideo.userHandle,
-                                _videoPlayer.currentVideo.gid);
+                                _videoPlayer.currentVideo.gid,
+								_videoPlayer.mediaPlayer.Info.GetDurationMs() / 1000);
+
+							// Send buffer analytics
+							AnalyticsManager.Instance().SendVideoBufferAnalytics(_videoPlayer.currentVideo.name,
+								_videoPlayer.totalBufferTime,
+								_videoPlayer.mediaPlayer.Info.GetDurationMs() / 1000,
+								cat,
+								_videoPlayer.currentVideo.userHandle,
+								_videoPlayer.currentVideo.gid);
                         }
 
                         // Play audio

@@ -220,12 +220,13 @@ namespace BR.App
                 (videoPlayerMenu.totalTimeSpent / mediaPlayer.Info.GetDurationMs()) * 1000,
                 cat,
                 currentVideo.userHandle,
-                currentVideo.gid);
+                currentVideo.gid,
+				mediaPlayer.Info.GetDurationMs() / 1000);
 
             // Send buffer analytics
             AnalyticsManager.Instance().SendVideoBufferAnalytics(currentVideo.name,
                 totalBufferTime,
-                mediaPlayer.Info.GetDurationMs() * 1000,
+                mediaPlayer.Info.GetDurationMs() / 1000,
                 cat,
                 currentVideo.userHandle,
                 currentVideo.gid);

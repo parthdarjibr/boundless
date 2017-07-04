@@ -395,7 +395,7 @@ namespace BR.App
 
             currentVideoPlayer.mediaPlayer.Control.Seek(scrubTo);
             
-            _wasPlayingOnScrub = false;
+//            _wasPlayingOnScrub = false;
 
             // Update the texts
             txtBeginTime.text = txtCurrentTime.text;

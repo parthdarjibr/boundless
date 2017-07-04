@@ -10,6 +10,7 @@ using UnityEngine;
 using System.Collections;
 using UnityEngine.Analytics;
 using System.Collections.Generic;
+using BR.App;
 
 namespace BR.BRUtilities {
 	public class AnalyticsManager : MonoBehaviour
@@ -75,7 +76,7 @@ namespace BR.BRUtilities {
 		/// <param name="spentTime">Time spent in video in seconds.</param>
 		/// <param name="videoCategory">Video category.</param>
 		/// <param name="creatorName">Creator name.</param>
-		public void SendVideoAnalytics (string videoName, float spentTimePercentage, string videoCategory, string creatorName, string videoUUID ) {
+		public void SendVideoAnalytics (string videoName, float spentTimePercentage, string videoCategory, string creatorName, string videoUUID, float totalTime ) {
 			if (registerAnalytics) {
 				// handle null values in case they exist
 				if (videoName == null)
@@ -88,6 +89,8 @@ namespace BR.BRUtilities {
 					creatorName = "NoCreatorName";
 				if (videoUUID == null)
 					videoUUID = "NoVideoUUID";
+				if (float.IsNaN(totalTime))
+					totalTime = -1;
 			
 				Analytics.CustomEvent ("VideoWatched", new Dictionary<string, object> {
                     //{ "UserUUID", PlayerPrefs.GetString ("UniqueID") },
@@ -101,7 +104,8 @@ namespace BR.BRUtilities {
 					{ "CustomTS", DateTime.Now.ToString () }
 				});
 
-				Debug.Log ("Spent time: " + spentTimePercentage);
+				// Debug.Log ("Spent time: " + spentTimePercentage);
+				// Debug.Log ("Total time: " + totalTime);
 			}
 		}
 
@@ -136,7 +140,7 @@ namespace BR.BRUtilities {
                     { "CustomTS", DateTime.Now.ToString () }
                 });
 
-                Debug.Log("Spent time: " + bufferTime);
+                //Debug.Log("Buffer time: " + bufferTime);
             }
         }
 

@@ -139,7 +139,7 @@ public class OVRCameraRig : MonoBehaviour
 		}
 
 		bool monoscopic = OVRManager.instance.monoscopic;
-
+		#if !UNITY_EDITOR_OSX
 		OVRPose tracker = OVRManager.tracker.GetPose();
 
 		trackerAnchor.localRotation = tracker.orientation;
@@ -160,6 +160,7 @@ public class OVRCameraRig : MonoBehaviour
 		{
 			UpdatedAnchors(this);
 		}
+		#endif
 	}
 
 	public void EnsureGameObjectIntegrity()

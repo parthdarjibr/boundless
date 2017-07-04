@@ -172,7 +172,8 @@ public class VideoScrollRectItemsAdapter : GridAdapter<VideoDetailParams, VideoI
 			viewHolder.btnInfluencer.onClick.AddListener (delegate {
 				// Execute the on exit handler
 				ExecuteEvents.Execute (viewHolder.btnInfluencer.gameObject, new PointerEventData (EventSystem.current), ExecuteEvents.pointerExitHandler);
-                ExecuteEvents.Execute(viewHolder.btnThumb.gameObject, new PointerEventData(EventSystem.current), ExecuteEvents.pointerUpHandler);
+				ExecuteEvents.Execute(viewHolder.btnThumb.gameObject, new PointerEventData(EventSystem.current), ExecuteEvents.pointerExitHandler);
+				viewHolder.btnThumb.GetComponent<Animator>().SetTrigger("Normal");
 				InfluencerButtonClicked (model);
 			});
 		}

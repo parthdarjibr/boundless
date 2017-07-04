@@ -102,8 +102,10 @@ public class CreatorScrollRectItemsAdapter : GridAdapter<CreatorDetailParams, Cr
         viewHolder.btnInfluencer.onClick.RemoveAllListeners();
 		viewHolder.btnInfluencer.onClick.AddListener (delegate {
 			ExecuteEvents.Execute (viewHolder.btnInfluencer.gameObject, new PointerEventData (EventSystem.current), ExecuteEvents.pointerExitHandler);
-            viewHolder.btnInfluencer.gameObject.GetComponent<Animator>().SetTrigger("Normal");
-            InfluencerButtonClicked(model);
+			viewHolder.btnInfluencer.gameObject.GetComponent<Animator>().SetTrigger("Normal");
+			viewHolder.btnInfluencer.gameObject.SetActive(false);
+			viewHolder.btnInfluencer.gameObject.SetActive(true);
+			InfluencerButtonClicked(model);
 		});
 	}
 
@@ -138,6 +140,8 @@ public class CreatorScrollRectItemsAdapter : GridAdapter<CreatorDetailParams, Cr
 	#region EVENT HANDLERS
 
 	void InfluencerButtonClicked(InfluencerDetail currentInfluencer) {
+	// IEnumerator InfluencerButtonClicked(InfluencerDetail currentInfluencer) {
+		
 		AnalyticsManager.Instance ().SendButtonClickAnalytics ("creator", "creatorOnHome", currentInfluencer.handle);
 
 		// ApplicationController.Instance ().OpenInfluencerView (currentInfluencer);
